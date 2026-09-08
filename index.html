@@ -2,9 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Krishna Jewellers - Fine jewellery in Lohamandi, Gola Bazar, Gorakhpur. Explore our jewellery collection and contact us for enquiries.">
-  <meta name="theme-color" content="#171717">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Krishna Jewellers Gorakhpur — timeless gold jewellery, elegant designs and trusted craftsmanship."
+  >
+
+  <meta
+    name="theme-color"
+    content="#171717"
+  >
 
   <title>Krishna Jewellers | Gorakhpur</title>
 
@@ -12,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   >
 
@@ -21,396 +33,588 @@
 
 <body>
 
-  <!-- =========================
+  <!-- =====================================================
        HEADER
-  ========================== -->
+  ====================================================== -->
+
   <header class="site-header" id="siteHeader">
+
     <div class="container header-inner">
 
-      <a href="#home" class="brand" aria-label="Krishna Jewellers home">
-        <span class="brand-mark">KJ</span>
+      <a
+        href="#home"
+        class="brand"
+        aria-label="Krishna Jewellers home"
+      >
+        <span class="brand-name">
+          Krishna Jewellers
+        </span>
 
-        <span class="brand-text">
-          <strong>KRISHNA</strong>
-          <small>JEWELLERS</small>
+        <span class="brand-tagline">
+          Gorakhpur • Fine Jewellery
         </span>
       </a>
 
-      <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+      <nav
+        class="main-nav"
+        id="mainNav"
+        aria-label="Main navigation"
+      >
         <a href="#home">Home</a>
-        <a href="#collections">Collections</a>
-        <a href="#about">About</a>
+        <a href="#collection">Collection</a>
+        <a href="#story">Our Story</a>
         <a href="#services">Services</a>
-        <a href="#faq">FAQ</a>
         <a href="#contact">Contact</a>
       </nav>
 
       <div class="header-actions">
 
         <button
-          type="button"
           class="icon-btn"
           id="searchToggle"
-          aria-label="Open search"
-          title="Search"
+          type="button"
+          aria-label="Search jewellery"
         >
-          <span>⌕</span>
+          <svg
+            width="19"
+            height="19"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4-4"></path>
+          </svg>
         </button>
 
         <button
-          type="button"
           class="icon-btn"
           id="wishlistBtn"
-          aria-label="Wishlist"
-          title="Wishlist"
+          type="button"
+          aria-label="Open wishlist"
         >
-          <span>♡</span>
-          <b class="count-badge" id="wishlistCount">0</b>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path
+              d="M20.8 8.9c0 5.4-8.8 10.1-8.8 10.1S3.2 14.3 3.2 8.9A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.7Z"
+            ></path>
+          </svg>
+
+          <span
+            id="wishlistCount"
+            class="hidden"
+          >
+            0
+          </span>
         </button>
 
         <button
-          type="button"
-          class="icon-btn"
-          id="cartBtn"
-          aria-label="Shopping bag"
-          title="Shopping bag"
-        >
-          <span>♧</span>
-          <b class="count-badge" id="cartCount">0</b>
-        </button>
-
-        <button
-          type="button"
-          class="mobile-menu-btn"
+          class="icon-btn mobile-menu-btn"
           id="mobileMenuBtn"
+          type="button"
           aria-label="Open menu"
-          aria-expanded="false"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <svg
+            width="21"
+            height="21"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M4 7h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 17h16"></path>
+          </svg>
         </button>
 
       </div>
+
     </div>
 
-    <!-- Search bar -->
-    <div class="search-panel" id="searchPanel">
-      <div class="container search-panel-inner">
-        <label for="searchInput" class="sr-only">Search jewellery</label>
+    <!-- Search -->
+
+    <div
+      class="search-panel"
+      id="searchPanel"
+    >
+      <div class="container search-inner">
+
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-4-4"></path>
+        </svg>
 
         <input
-          type="search"
           id="searchInput"
-          placeholder="Search jewellery..."
+          class="search-input"
+          type="search"
+          placeholder="Search rings, necklaces, earrings..."
           autocomplete="off"
         >
 
-        <button type="button" id="searchClose" aria-label="Close search">
+        <button
+          id="searchClose"
+          class="icon-btn"
+          type="button"
+          aria-label="Close search"
+        >
           ×
         </button>
+
       </div>
     </div>
+
   </header>
 
 
   <main>
 
-    <!-- =========================
+    <!-- ===================================================
          HERO
-    ========================== -->
-    <section class="hero" id="home">
-      <div class="hero-overlay"></div>
+    ==================================================== -->
 
-      <div class="container hero-content">
+    <section
+      class="hero"
+      id="home"
+    >
 
-        <p class="eyebrow">TIMELESS ELEGANCE</p>
+      <div class="container">
 
-        <h1>
-          Jewellery that<br>
-          <em>tells your story.</em>
-        </h1>
+        <div class="hero-content">
 
-        <p class="hero-description">
-          Discover thoughtfully selected jewellery designed to celebrate
-          life's beautiful moments.
-        </p>
+          <div class="eyebrow">
+            Since 1987
+          </div>
 
-        <div class="hero-buttons">
-          <a href="#collections" class="btn btn-primary">
-            Explore Collection
-          </a>
+          <h1>
+            Jewellery
+            <span>that tells your story.</span>
+          </h1>
 
-          <a href="#contact" class="btn btn-outline">
-            Visit Our Store
-          </a>
+          <p>
+            Discover timeless gold jewellery crafted with
+            care, elegance and generations of trusted
+            craftsmanship in the heart of Gorakhpur.
+          </p>
+
+          <div class="hero-actions">
+
+            <a
+              href="#collection"
+              class="btn btn-primary"
+            >
+              Explore Collection
+            </a>
+
+            <a
+              href="https://wa.me/919839902006"
+              class="btn btn-outline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp Us
+            </a>
+
+          </div>
+
         </div>
 
       </div>
+
     </section>
 
 
-    <!-- =========================
+    <!-- ===================================================
          FEATURES
-    ========================== -->
+    ==================================================== -->
+
     <section class="features">
-      <div class="container features-grid">
+
+      <div class="feature-grid">
 
         <div class="feature">
-          <span class="feature-icon">◇</span>
-          <div>
-            <strong>Beautifully Crafted</strong>
-            <p>Carefully selected jewellery</p>
+
+          <div class="feature-icon">
+            <svg
+              width="23"
+              height="23"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M12 3 4 9l8 12 8-12-8-6Z"></path>
+              <path d="m4 9 8 3 8-3"></path>
+            </svg>
           </div>
+
+          <h3>
+            Fine Craftsmanship
+          </h3>
+
+          <p>
+            Carefully selected designs made to last
+            for generations.
+          </p>
+
         </div>
 
         <div class="feature">
-          <span class="feature-icon">♢</span>
-          <div>
-            <strong>Personal Service</strong>
-            <p>Guidance for every occasion</p>
+
+          <div class="feature-icon">
+            <svg
+              width="23"
+              height="23"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M12 7v5l3 2"></path>
+            </svg>
           </div>
+
+          <h3>
+            Trusted Service
+          </h3>
+
+          <p>
+            Personal attention and honest guidance
+            for every customer.
+          </p>
+
         </div>
 
         <div class="feature">
-          <span class="feature-icon">✦</span>
-          <div>
-            <strong>Made for Moments</strong>
-            <p>Jewellery worth remembering</p>
+
+          <div class="feature-icon">
+            <svg
+              width="23"
+              height="23"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6l-7-3Z"></path>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
           </div>
+
+          <h3>
+            Quality You Can Trust
+          </h3>
+
+          <p>
+            Jewellery selected with quality and
+            authenticity in mind.
+          </p>
+
         </div>
 
       </div>
+
     </section>
 
 
-    <!-- =========================
-         COLLECTIONS
-    ========================== -->
-    <section class="collections section" id="collections">
+    <!-- ===================================================
+         COLLECTION
+    ==================================================== -->
+
+    <section
+      class="section"
+      id="collection"
+    >
+
       <div class="container">
 
         <div class="section-heading">
-          <div>
-            <p class="eyebrow">OUR COLLECTION</p>
-            <h2>Find something <em>beautiful.</em></h2>
+
+          <div class="eyebrow">
+            The Collection
           </div>
 
-          <p class="section-description">
-            Browse our jewellery collection. New products added through
-            the admin panel will automatically appear here once published.
+          <h2 class="section-title">
+            Discover something
+            <br>
+            truly yours.
+          </h2>
+
+          <p class="section-subtitle">
+            Explore our collection of elegant jewellery.
+            Every piece can be viewed and discussed directly
+            with Krishna Jewellers.
           </p>
+
         </div>
 
 
         <!-- Categories -->
-        <div class="category-tabs" id="categoryTabs">
+
+        <div
+          class="category-tabs"
+          id="categoryTabs"
+          role="tablist"
+          aria-label="Jewellery categories"
+        >
+
           <button
-            type="button"
             class="category-tab active"
+            type="button"
             data-category="all"
           >
             All
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="rings"
           >
             Rings
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="necklaces"
           >
             Necklaces
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="earrings"
           >
             Earrings
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="bangles"
           >
             Bangles
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="bracelets"
           >
             Bracelets
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="chains"
           >
             Chains
           </button>
 
           <button
-            type="button"
             class="category-tab"
+            type="button"
             data-category="other"
           >
             Other
           </button>
+
         </div>
 
 
         <!-- Toolbar -->
+
         <div class="catalogue-toolbar">
 
-          <p id="productResultText">
+          <div
+            class="product-result-text"
+            id="productResultText"
+          >
             Loading collection...
-          </p>
-
-          <div class="sort-wrapper">
-
-            <label for="sortProducts">Sort:</label>
-
-            <select id="sortProducts">
-              <option value="featured">Featured</option>
-              <option value="name-asc">Name A–Z</option>
-              <option value="name-desc">Name Z–A</option>
-              <option value="price-low">Price Low–High</option>
-              <option value="price-high">Price High–Low</option>
-            </select>
-
           </div>
+
+          <select
+            id="sortProducts"
+            class="sort-products"
+            aria-label="Sort products"
+          >
+            <option value="featured">
+              Featured
+            </option>
+
+            <option value="newest">
+              Newest
+            </option>
+
+            <option value="name">
+              Name
+            </option>
+
+            <option value="price-low">
+              Price: Low to High
+            </option>
+
+            <option value="price-high">
+              Price: High to Low
+            </option>
+          </select>
 
         </div>
 
 
-        <!-- Product grid -->
+        <!-- Products -->
+
         <div
           class="product-grid"
           id="productGrid"
-          aria-live="polite"
         >
-          <div class="loading-state">
-            <div class="loading-spinner"></div>
-            <p>Loading jewellery...</p>
-          </div>
         </div>
 
 
-        <!-- Empty state -->
-        <div
-          class="empty-state"
-          id="emptyState"
-          hidden
-        >
-          <div class="empty-icon">◇</div>
+        <!-- Empty -->
 
-          <h3>No jewellery found</h3>
+        <div
+          id="emptyState"
+          class="empty-state hidden"
+        >
+
+          <h3>
+            Nothing found
+          </h3>
 
           <p>
-            Try another search or category.
+            Try another search or jewellery category.
           </p>
 
           <button
-            type="button"
-            class="btn btn-primary"
             id="clearFiltersBtn"
+            type="button"
+            class="btn btn-outline"
           >
-            View All Jewellery
+            Clear Filters
           </button>
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =========================
-         ABOUT
-    ========================== -->
-    <section class="about section" id="about">
-      <div class="container about-grid">
-
-        <div class="about-image">
-          <div class="about-image-inner">
-            <span>KRISHNA</span>
-            <strong>JEWELLERS</strong>
-          </div>
-        </div>
-
-        <div class="about-content">
-
-          <p class="eyebrow">ABOUT KRISHNA JEWELLERS</p>
-
-          <h2>
-            Jewellery for your
-            <em>special moments.</em>
-          </h2>
-
-          <p>
-            At Krishna Jewellers, we believe jewellery is more than an
-            accessory. It becomes part of the memories, celebrations and
-            milestones that matter most.
-          </p>
-
-          <p>
-            Visit us in Lohamandi, Gola Bazar, Gorakhpur and explore our
-            collection with personal guidance from our team.
-          </p>
-
-          <div class="about-details">
-
-            <div>
-              <strong>Location</strong>
-              <span>Lohamandi, Gola Bazar, Gorakhpur</span>
-            </div>
-
-            <div>
-              <strong>Hours</strong>
-              <span>9:30 AM – 7:00 PM</span>
-            </div>
-
-          </div>
-
-          <a href="#contact" class="text-link">
-            Plan your visit →
-          </a>
 
         </div>
 
       </div>
+
     </section>
 
 
-    <!-- =========================
-         SERVICES
-    ========================== -->
-    <section class="services section" id="services">
+    <!-- ===================================================
+         STORY
+    ==================================================== -->
+
+    <section
+      class="section story"
+      id="story"
+    >
+
       <div class="container">
 
-        <div class="section-heading centered">
+        <div class="story-grid">
 
-          <p class="eyebrow">OUR SERVICES</p>
+          <div class="story-copy">
 
-          <h2>
-            Here for every
-            <em>jewellery need.</em>
+            <div class="eyebrow">
+              Our Story
+            </div>
+
+            <h2 class="section-title">
+              A tradition of
+              <br>
+              timeless elegance.
+            </h2>
+
+            <p>
+              At Krishna Jewellers, jewellery is more than
+              an ornament. It is part of celebrations,
+              memories and the moments that become family
+              stories.
+            </p>
+
+            <p>
+              Based in Lohamandi, Gola Bazar, Gorakhpur,
+              we bring together traditional craftsmanship
+              and elegant contemporary designs.
+            </p>
+
+            <p>
+              Whether you are looking for a special gift,
+              wedding jewellery or an everyday piece,
+              our team is here to help you find something
+              that feels uniquely yours.
+            </p>
+
+            <a
+              href="https://wa.me/919839902006"
+              class="btn btn-gold"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Talk to Us
+            </a>
+
+          </div>
+
+          <div class="story-image">
+
+            <img
+              src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=1200&q=85"
+              alt="Elegant gold jewellery"
+              loading="lazy"
+            >
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         SERVICES
+    ==================================================== -->
+
+    <section
+      class="section"
+      id="services"
+    >
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <div class="eyebrow">
+            Our Services
+          </div>
+
+          <h2 class="section-title">
+            Personal service,
+            <br>
+            every step of the way.
           </h2>
-
-          <p class="section-description">
-            From choosing a special piece to caring for your jewellery,
-            we're here to help.
-          </p>
 
         </div>
 
@@ -418,623 +622,227 @@
         <div class="services-grid">
 
           <article class="service-card">
-            <div class="service-number">01</div>
-            <h3>Personal Shopping</h3>
+
+            <div class="service-number">
+              01
+            </div>
+
+            <h3>
+              Jewellery Selection
+            </h3>
+
             <p>
-              Get personalised assistance while choosing jewellery
-              for yourself or someone special.
+              Tell us what you are looking for and our
+              team will help you explore designs suited
+              to your occasion and style.
             </p>
+
           </article>
 
-          <article class="service-card">
-            <div class="service-number">02</div>
-            <h3>Jewellery Guidance</h3>
-            <p>
-              Our team can help you explore styles and find something
-              suited to your occasion and preferences.
-            </p>
-          </article>
 
           <article class="service-card">
-            <div class="service-number">03</div>
-            <h3>Jewellery Care</h3>
+
+            <div class="service-number">
+              02
+            </div>
+
+            <h3>
+              Wedding Jewellery
+            </h3>
+
             <p>
-              Ask our team about caring for and maintaining your
-              favourite jewellery pieces.
+              Discover elegant pieces for weddings,
+              engagements and the celebrations that
+              matter most.
             </p>
+
           </article>
 
+
           <article class="service-card">
-            <div class="service-number">04</div>
-            <h3>Enquiries</h3>
+
+            <div class="service-number">
+              03
+            </div>
+
+            <h3>
+              Personal Assistance
+            </h3>
+
             <p>
-              Contact us by phone or WhatsApp for product enquiries
-              before visiting our store.
+              Have a question about a piece? Contact us
+              directly through WhatsApp for assistance.
             </p>
+
           </article>
 
         </div>
 
       </div>
+
     </section>
 
 
-    <!-- =========================
+    <!-- ===================================================
          TESTIMONIALS
-    ========================== -->
-    <section class="testimonials section">
+    ==================================================== -->
+
+    <section class="section testimonials">
+
       <div class="container">
 
-        <div class="section-heading centered">
+        <div class="section-heading">
 
-          <p class="eyebrow">A PERSONAL EXPERIENCE</p>
+          <div class="eyebrow">
+            Our Customers
+          </div>
 
-          <h2>
-            Chosen for moments that
-            <em>matter.</em>
+          <h2 class="section-title">
+            Moments worth remembering.
           </h2>
 
         </div>
+
 
         <div class="testimonial-grid">
 
           <article class="testimonial">
-            <div class="stars">★★★★★</div>
+
+            <div class="stars">
+              ★★★★★
+            </div>
 
             <p>
-              “Beautiful designs and a very welcoming shopping
-              experience.”
+              “Beautiful collection and very helpful
+              service. The experience felt personal from
+              beginning to end.”
             </p>
 
-            <strong>— Krishna Jewellers Customer</strong>
+            <strong>
+              Krishna Jewellers Customer
+            </strong>
+
           </article>
 
+
           <article class="testimonial">
-            <div class="stars">★★★★★</div>
+
+            <div class="stars">
+              ★★★★★
+            </div>
 
             <p>
-              “The team helped us choose something perfect for a
-              special occasion.”
+              “The designs are elegant and the staff helped
+              us choose something perfect for a special
+              occasion.”
             </p>
 
-            <strong>— Krishna Jewellers Customer</strong>
+            <strong>
+              Krishna Jewellers Customer
+            </strong>
+
           </article>
 
+
           <article class="testimonial">
-            <div class="stars">★★★★★</div>
+
+            <div class="stars">
+              ★★★★★
+            </div>
 
             <p>
-              “A lovely place to explore jewellery with personal
+              “A lovely jewellery shopping experience.
+              We received genuine guidance and excellent
               attention.”
             </p>
 
-            <strong>— Krishna Jewellers Customer</strong>
+            <strong>
+              Krishna Jewellers Customer
+            </strong>
+
           </article>
 
         </div>
 
       </div>
+
     </section>
 
 
-    <!-- =========================
-         FAQ
-    ========================== -->
-    <section class="faq section" id="faq">
-      <div class="container faq-grid">
-
-        <div class="faq-intro">
-
-          <p class="eyebrow">QUESTIONS</p>
-
-          <h2>
-            Frequently asked
-            <em>questions.</em>
-          </h2>
-
-          <p>
-            Can't find what you're looking for?
-            Contact us directly and we'll be happy to help.
-          </p>
-
-          <a
-            href="https://wa.me/917394872651"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn btn-primary"
-          >
-            WhatsApp Us
-          </a>
-
-        </div>
-
-
-        <div class="faq-list">
-
-          <details class="faq-item">
-            <summary>
-              Where is Krishna Jewellers located?
-              <span>+</span>
-            </summary>
-
-            <p>
-              We are located at Lohamandi, Gola Bazar, Gorakhpur.
-            </p>
-          </details>
-
-          <details class="faq-item">
-            <summary>
-              What are your opening hours?
-              <span>+</span>
-            </summary>
-
-            <p>
-              Our opening hours are 9:30 AM to 7:00 PM.
-            </p>
-          </details>
-
-          <details class="faq-item">
-            <summary>
-              Can I ask about a product before visiting?
-              <span>+</span>
-            </summary>
-
-            <p>
-              Yes. You can call or WhatsApp us about products,
-              availability and other enquiries before visiting.
-            </p>
-          </details>
-
-          <details class="faq-item">
-            <summary>
-              Can I enquire about an item online?
-              <span>+</span>
-            </summary>
-
-            <p>
-              Yes. Use the enquiry button on a product or contact
-              us directly through WhatsApp or phone.
-            </p>
-          </details>
-
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =========================
+    <!-- ===================================================
          NEWSLETTER
-    ========================== -->
-    <section class="newsletter section">
-      <div class="container newsletter-inner">
+    ==================================================== -->
 
-        <div>
-          <p class="eyebrow">STAY CONNECTED</p>
+    <section class="section newsletter">
 
-          <h2>
-            Discover something
-            <em>beautiful.</em>
+      <div class="container">
+
+        <div class="newsletter-box">
+
+          <div class="eyebrow">
+            Stay Connected
+          </div>
+
+          <h2 class="section-title">
+            Discover new arrivals.
           </h2>
 
-          <p>
-            Get updates about new jewellery and special collections.
+          <p class="section-subtitle">
+            Join our mailing list for updates, new
+            jewellery designs and special announcements.
           </p>
-        </div>
 
-        <form class="newsletter-form" id="newsletterForm">
-
-          <label for="newsletterEmail" class="sr-only">
-            Email address
-          </label>
-
-          <input
-            type="email"
-            id="newsletterEmail"
-            placeholder="Your email address"
-            required
+          <form
+            id="newsletterForm"
+            class="newsletter-form"
           >
 
-          <button type="submit" class="btn btn-primary">
-            Subscribe
-          </button>
-
-        </form>
-
-      </div>
-    </section>
-
-
-    <!-- =========================
-         CONTACT
-    ========================== -->
-    <section class="contact section" id="contact">
-      <div class="container contact-grid">
-
-        <div class="contact-content">
-
-          <p class="eyebrow">VISIT US</p>
-
-          <h2>
-            We'd love to
-            <em>meet you.</em>
-          </h2>
-
-          <p>
-            Visit Krishna Jewellers in Gola Bazar, Gorakhpur and
-            explore our jewellery collection in person.
-          </p>
-
-
-          <div class="contact-list">
-
-            <div class="contact-item">
-              <span class="contact-icon">⌖</span>
-
-              <div>
-                <strong>Address</strong>
-                <p>
-                  Lohamandi, Gola Bazar,<br>
-                  Gorakhpur
-                </p>
-              </div>
-            </div>
-
-            <div class="contact-item">
-              <span class="contact-icon">☎</span>
-
-              <div>
-                <strong>Phone</strong>
-                <p>
-                  <a href="tel:+919839902006">
-                    9839902006
-                  </a>
-                  <br>
-                  <a href="tel:+917394872651">
-                    7394872651
-                  </a>
-                </p>
-              </div>
-            </div>
-
-            <div class="contact-item">
-              <span class="contact-icon">✉</span>
-
-              <div>
-                <strong>Email</strong>
-
-                <p>
-                  <a href="mailto:krishnajewellersgkp@gmail.com">
-                    krishnajewellersgkp@gmail.com
-                  </a>
-                </p>
-              </div>
-            </div>
-
-            <div class="contact-item">
-              <span class="contact-icon">◷</span>
-
-              <div>
-                <strong>Opening Hours</strong>
-
-                <p>
-                  9:30 AM – 7:00 PM
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-
-          <div class="contact-buttons">
-
-            <a
-              href="tel:+919839902006"
-              class="btn btn-primary"
+            <input
+              type="email"
+              name="email"
+              placeholder="Your email address"
+              aria-label="Email address"
+              required
             >
-              Call Us
-            </a>
 
-            <a
-              href="https://wa.me/917394872651"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="btn btn-whatsapp"
+            <button
+              type="submit"
+              class="btn btn-gold"
             >
-              WhatsApp
-            </a>
+              Subscribe
+            </button>
 
-          </div>
-
-        </div>
-
-
-        <div class="map-card">
-
-          <div class="map-placeholder">
-
-            <div class="map-pin">◆</div>
-
-            <h3>Krishna Jewellers</h3>
-
-            <p>
-              Lohamandi, Gola Bazar<br>
-              Gorakhpur
-            </p>
-
-            <a
-              href="https://www.google.com/maps/search/?api=1&query=Krishna+Jewellers+Lohamandi+Gola+Bazar+Gorakhpur"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-link"
-            >
-              Open in Google Maps →
-            </a>
-
-          </div>
+          </form>
 
         </div>
 
       </div>
+
     </section>
 
   </main>
 
 
-  <!-- =========================
-       FOOTER
-  ========================== -->
-  <footer class="site-footer">
-    <div class="container footer-grid">
-
-      <div class="footer-brand">
-
-        <a href="#home" class="brand footer-logo">
-          <span class="brand-mark">KJ</span>
-
-          <span class="brand-text">
-            <strong>KRISHNA</strong>
-            <small>JEWELLERS</small>
-          </span>
-        </a>
-
-        <p>
-          Jewellery for your special moments.
-        </p>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <h4>Explore</h4>
-
-        <a href="#home">Home</a>
-        <a href="#collections">Collections</a>
-        <a href="#about">About</a>
-        <a href="#services">Services</a>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <h4>Help</h4>
-
-        <a href="#faq">FAQ</a>
-        <a href="#contact">Contact</a>
-        <a href="#collections">Catalogue</a>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <h4>Contact</h4>
-
-        <a href="tel:+919839902006">
-          9839902006
-        </a>
-
-        <a href="tel:+917394872651">
-          7394872651
-        </a>
-
-        <a href="mailto:krishnajewellersgkp@gmail.com">
-          Email us
-        </a>
-
-        <a
-          href="https://www.instagram.com/krishna_jewellers_gkp/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Instagram
-        </a>
-
-      </div>
-
-    </div>
-
-
-    <div class="container footer-bottom">
-
-      <p>
-        © <span id="currentYear"></span> Krishna Jewellers.
-        All rights reserved.
-      </p>
-
-      <p>
-        Lohamandi, Gola Bazar, Gorakhpur
-      </p>
-
-    </div>
-
-  </footer>
-
-
-  <!-- =========================
-       PRODUCT MODAL
-  ========================== -->
-  <div
-    class="modal"
-    id="productModal"
-    aria-hidden="true"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modalProductName"
-  >
-
-    <div class="modal-backdrop" data-close-modal></div>
-
-    <div class="modal-dialog product-modal">
-
-      <button
-        type="button"
-        class="modal-close"
-        data-close-modal
-        aria-label="Close"
-      >
-        ×
-      </button>
-
-      <div class="product-modal-grid">
-
-        <div class="product-modal-image">
-          <img
-            id="modalProductImage"
-            src=""
-            alt=""
-          >
-        </div>
-
-        <div class="product-modal-info">
-
-          <p
-            class="eyebrow"
-            id="modalProductCategory"
-          ></p>
-
-          <h2 id="modalProductName"></h2>
-
-          <p
-            class="modal-product-price"
-            id="modalProductPrice"
-          ></p>
-
-          <p
-            class="modal-product-description"
-            id="modalProductDescription"
-          ></p>
-
-          <div
-            class="modal-product-meta"
-            id="modalProductMeta"
-          ></div>
-
-          <div class="modal-actions">
-
-            <button
-              type="button"
-              class="btn btn-primary"
-              id="modalEnquireBtn"
-            >
-              Enquire on WhatsApp
-            </button>
-
-            <button
-              type="button"
-              class="btn btn-secondary"
-              id="modalAddCartBtn"
-            >
-              Add to Bag
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       CART DRAWER
-  ========================== -->
-  <aside
-    class="side-drawer"
-    id="cartDrawer"
-    aria-hidden="true"
-    aria-label="Shopping bag"
-  >
-
-    <div class="drawer-header">
-
-      <div>
-        <p class="eyebrow">YOUR SELECTION</p>
-        <h2>Shopping Bag</h2>
-      </div>
-
-      <button
-        type="button"
-        class="drawer-close"
-        id="cartClose"
-        aria-label="Close shopping bag"
-      >
-        ×
-      </button>
-
-    </div>
-
-    <div
-      class="drawer-content"
-      id="cartItems"
-    ></div>
-
-    <div class="drawer-footer">
-
-      <div class="drawer-total">
-        <span>Total</span>
-        <strong id="cartTotal">₹0</strong>
-      </div>
-
-      <button
-        type="button"
-        class="btn btn-primary btn-full"
-        id="checkoutBtn"
-      >
-        Send Enquiry
-      </button>
-
-    </div>
-
-  </aside>
-
-
-  <!-- =========================
+  <!-- =====================================================
        WISHLIST DRAWER
-  ========================== -->
+  ====================================================== -->
+
   <aside
-    class="side-drawer"
+    class="drawer"
     id="wishlistDrawer"
-    aria-hidden="true"
     aria-label="Wishlist"
   >
 
     <div class="drawer-header">
 
-      <div>
-        <p class="eyebrow">SAVED PIECES</p>
-        <h2>Wishlist</h2>
-      </div>
+      <h2>
+        Your Wishlist
+      </h2>
 
       <button
-        type="button"
-        class="drawer-close"
         id="wishlistClose"
+        class="drawer-close"
+        type="button"
         aria-label="Close wishlist"
       >
         ×
@@ -1042,113 +850,87 @@
 
     </div>
 
-    <div
-      class="drawer-content"
-      id="wishlistItems"
-    ></div>
+    <div id="wishlistItems">
+    </div>
 
   </aside>
 
 
-  <!-- =========================
-       CHECKOUT / ENQUIRY MODAL
-  ========================== -->
+  <!-- =====================================================
+       PRODUCT MODAL
+  ====================================================== -->
+
   <div
-    class="modal"
-    id="checkoutModal"
-    aria-hidden="true"
+    class="modal-overlay"
+    id="productModal"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="checkoutTitle"
+    aria-labelledby="productModalName"
   >
 
-    <div class="modal-backdrop" data-close-modal></div>
-
-    <div class="modal-dialog checkout-dialog">
+    <div class="modal">
 
       <button
-        type="button"
+        id="productModalClose"
         class="modal-close"
-        data-close-modal
-        aria-label="Close"
+        type="button"
+        aria-label="Close product details"
       >
         ×
       </button>
 
-      <div class="checkout-content">
 
-        <p class="eyebrow">JEWELLERY ENQUIRY</p>
+      <div class="product-detail">
 
-        <h2 id="checkoutTitle">
-          Let's talk about your selection.
-        </h2>
+        <div class="product-detail-image">
 
-        <p>
-          Enter your details and we'll prepare your enquiry.
-          You can then send it directly to Krishna Jewellers on WhatsApp.
-        </p>
+          <img
+            id="productModalImage"
+            src=""
+            alt=""
+          >
+
+        </div>
 
 
-        <form id="checkoutForm">
+        <div class="product-detail-content">
 
-          <div class="form-group">
-
-            <label for="customerName">
-              Name
-            </label>
-
-            <input
-              type="text"
-              id="customerName"
-              name="name"
-              placeholder="Your name"
-              required
-            >
-
+          <div
+            class="product-category"
+            id="productModalCategory"
+          >
           </div>
 
+          <h2 id="productModalName">
+          </h2>
 
-          <div class="form-group">
+          <p id="productModalDescription">
+          </p>
 
-            <label for="customerPhone">
-              Phone
-            </label>
+          <p>
+            <strong>
+              Material:
+            </strong>
 
-            <input
-              type="tel"
-              id="customerPhone"
-              name="phone"
-              placeholder="Your phone number"
-              required
-            >
+            <span id="productModalMaterial">
+            </span>
+          </p>
 
+          <div
+            class="detail-price"
+            id="productModalPrice"
+          >
           </div>
-
-
-          <div class="form-group">
-
-            <label for="customerMessage">
-              Message
-            </label>
-
-            <textarea
-              id="customerMessage"
-              name="message"
-              rows="4"
-              placeholder="Anything you'd like us to know?"
-            ></textarea>
-
-          </div>
-
 
           <button
-            type="submit"
-            class="btn btn-primary btn-full"
+            id="productModalEnquire"
+            type="button"
+            class="btn btn-gold"
           >
-            Send Enquiry on WhatsApp
+            Enquire on WhatsApp
           </button>
 
-        </form>
+        </div>
 
       </div>
 
@@ -1157,37 +939,181 @@
   </div>
 
 
-  <!-- =========================
-       TOAST
-  ========================== -->
-  <div
-    class="toast"
-    id="toast"
-    role="status"
-    aria-live="polite"
-  ></div>
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
+  <footer
+    class="site-footer"
+    id="contact"
+  >
+
+    <div class="container">
+
+      <div class="footer-grid">
+
+        <div>
+
+          <div class="footer-brand">
+            Krishna Jewellers
+          </div>
+
+          <p>
+            Timeless jewellery for timeless moments.
+          </p>
+
+          <p>
+            Gorakhpur, Uttar Pradesh
+          </p>
+
+        </div>
 
 
-  <!-- =========================
-       WHATSAPP BUTTON
-  ========================== -->
+        <div class="footer-column">
+
+          <h4>
+            Visit Us
+          </h4>
+
+          <p>
+            Lohamandi, Gola Bazar
+          </p>
+
+          <p>
+            Gorakhpur
+          </p>
+
+          <p>
+            9:30 AM – 7:00 PM
+          </p>
+
+        </div>
+
+
+        <div class="footer-column">
+
+          <h4>
+            Contact
+          </h4>
+
+          <a href="tel:+919839902006">
+            9839902006
+          </a>
+
+          <a href="tel:+917394872651">
+            7394872651
+          </a>
+
+          <a href="mailto:krishnajewellersgkp@gmail.com">
+            krishnajewellersgkp@gmail.com
+          </a>
+
+          <a
+            href="https://instagram.com/krishna_jewellers_gkp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Instagram
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div class="footer-bottom">
+
+        <span>
+          © <span id="currentYear"></span>
+          Krishna Jewellers. All rights reserved.
+        </span>
+
+        <span>
+          Gorakhpur
+        </span>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+  <!-- =====================================================
+       FLOATING WHATSAPP
+  ====================================================== -->
+
   <a
-    href="https://wa.me/917394872651"
-    class="floating-whatsapp"
+    class="whatsapp-float"
+    data-whatsapp
+    href="https://wa.me/919839902006"
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Chat with Krishna Jewellers on WhatsApp"
-    title="WhatsApp Krishna Jewellers"
   >
-    <span>☏</span>
+
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.1 1.6 5.9L.2 24l6.4-1.7a11.8 11.8 0 0 0 5.5 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.3-6.2-3.5-8.4ZM12.2 21.6h-.1c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 0 1-1.5-5.2C2.2 6.3 6.7 1.9 12.1 1.9c2.6 0 5.1 1 6.9 2.9a9.8 9.8 0 0 1 2.9 7c0 5.4-4.4 9.8-9.7 9.8Zm5.4-7.4c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-1.6-.8-2.7-1.4-3.8-3.2-.3-.5.3-.5.9-1.7.1-.3.1-.5 0-.7-.1-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.6s1.1 3 1.3 3.2c.2.2 2.1 3.3 5.1 4.6 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4Z"
+      />
+    </svg>
+
   </a>
 
 
-  <!-- =========================
-       SUPABASE + WEBSITE JS
-  ========================== -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- =====================================================
+       SCRIPTS
+  ====================================================== -->
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const year = document.getElementById("currentYear");
+
+      if (year) {
+        year.textContent = new Date().getFullYear();
+      }
+
+      const clearFilters =
+        document.getElementById("clearFiltersBtn");
+
+      clearFilters?.addEventListener("click", () => {
+        const searchInput =
+          document.getElementById("searchInput");
+
+        if (searchInput) {
+          searchInput.value = "";
+        }
+
+        document
+          .querySelectorAll(".category-tab")
+          .forEach((button) => {
+            button.classList.toggle(
+              "active",
+              button.dataset.category === "all"
+            );
+          });
+
+        const api = window.KrishnaJewellers;
+
+        if (api?.refreshCatalogue) {
+          api.refreshCatalogue();
+        }
+      });
+    });
+  </script>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
   <script src="supabase-config.js"></script>
+
   <script src="script.js"></script>
 
 </body>
