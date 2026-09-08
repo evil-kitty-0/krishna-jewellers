@@ -11,6 +11,6 @@
 */
 
 window.KRISHNA_SUPABASE = {
-  url: "https://vedrnkcauqfvloszjkwg.supabase.co/rest/v1/",
+  url: "https://vedrnkcauqfvloszjkwg.supabase.co",
   key: "sb_publishable_sA84nyFQKmn4VE3yhBJyNw_Y4KfGfYC"
 };
