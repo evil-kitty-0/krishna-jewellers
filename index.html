@@ -4,20 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Krishna Jewellers | Fine Jewellery in Gorakhpur</title>
   <meta
     name="description"
-    content="Krishna Jewellers Gorakhpur — discover elegant gold jewellery, bridal jewellery, rings, necklaces, earrings, bangles and more."
+    content="Discover timeless gold jewellery at Krishna Jewellers, Lohamandi, Gola Bazar, Gorakhpur."
   >
-
-  <meta name="theme-color" content="#f6dfe5">
-
-  <title>Krishna Jewellers | Fine Jewellery in Gorakhpur</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   >
 
@@ -26,39 +23,36 @@
 
 <body>
 
-  <!-- ANNOUNCEMENT -->
-
-  <div class="announcement">
+  <!-- =========================================================
+       ANNOUNCEMENT BAR
+  ========================================================== -->
+  <div class="announcement-bar">
     <div class="announcement-track">
-      <span>✦ Crafted for your special moments</span>
-      <span>✦ Visit us in Gola Bazar, Gorakhpur</span>
-      <span>✦ WhatsApp us for jewellery enquiries</span>
-      <span>✦ Crafted for your special moments</span>
-      <span>✦ Visit us in Gola Bazar, Gorakhpur</span>
-      <span>✦ WhatsApp us for jewellery enquiries</span>
+      <span>✨ Timeless Gold Jewellery</span>
+      <span>•</span>
+      <span>💎 Crafted With Elegance</span>
+      <span>•</span>
+      <span>📍 Lohamandi, Gola Bazar, Gorakhpur</span>
+      <span>•</span>
+      <span>✨ Visit Krishna Jewellers Today</span>
+      <span>•</span>
     </div>
   </div>
 
 
-  <!-- HEADER -->
-
-  <header class="site-header" id="siteHeader">
-
+  <!-- =========================================================
+       HEADER
+  ========================================================== -->
+  <header class="site-header">
     <div class="container header-inner">
 
-      <button
-        class="mobile-menu-button"
-        id="mobileMenuBtn"
-        type="button"
-        aria-label="Open menu"
-      >
-        ☰
-      </button>
+      <a href="#" class="brand">
+        <span class="brand-mark">KJ</span>
 
-      <a href="#home" class="brand">
-        <span class="brand-script">Krishna</span>
-        <span class="brand-main">JEWELLERS</span>
-        <small>GORAKHPUR</small>
+        <span class="brand-text">
+          <strong>KRISHNA</strong>
+          <small>JEWELLERS</small>
+        </span>
       </a>
 
       <nav class="main-nav" id="mainNav">
@@ -66,29 +60,29 @@
         <a href="#categories">Collections</a>
         <a href="#featured">Featured</a>
         <a href="#new-arrivals">New Arrivals</a>
-        <a href="#about">About</a>
+        <a href="#about">Our Story</a>
         <a href="#contact">Contact</a>
       </nav>
 
       <div class="header-actions">
 
         <button
+          class="icon-button"
           id="searchToggle"
-          class="header-icon"
+          aria-label="Open search"
           type="button"
-          aria-label="Search"
         >
           <span>⌕</span>
         </button>
 
         <button
-          id="wishlistBtn"
-          class="header-icon wishlist-header"
+          class="icon-button"
+          id="wishlistToggle"
+          aria-label="Open wishlist"
           type="button"
-          aria-label="Wishlist"
         >
-          ♡
-          <span id="wishlistCount" class="count hidden">0</span>
+          <span>♡</span>
+          <b id="wishlistCount">0</b>
         </button>
 
         <a
@@ -100,916 +94,124 @@
           WhatsApp
         </a>
 
-      </div>
-
-    </div>
-
-
-    <!-- SEARCH -->
-
-    <div class="search-panel" id="searchPanel">
-
-      <div class="container search-inner">
-
-        <span>⌕</span>
-
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Search jewellery..."
-          autocomplete="off"
-        >
-
         <button
-          id="searchClose"
+          class="menu-toggle"
+          id="menuToggle"
           type="button"
+          aria-label="Open menu"
         >
-          ×
+          ☰
         </button>
 
       </div>
 
     </div>
-
   </header>
 
 
-  <main>
+  <!-- =========================================================
+       SEARCH PANEL
+  ========================================================== -->
+  <section class="search-panel" id="searchPanel">
+    <div class="container search-panel-inner">
 
-    <!-- HERO -->
+      <div>
+        <span class="eyebrow">SEARCH KRISHNA JEWELLERS</span>
+        <h2>Find your next favourite piece.</h2>
+      </div>
 
-    <section class="hero" id="home">
+      <div class="search-box">
+        <input
+          type="search"
+          id="globalSearch"
+          placeholder="Search rings, necklaces, earrings..."
+          autocomplete="off"
+        >
 
-      <div class="hero-shape hero-shape-one"></div>
-      <div class="hero-shape hero-shape-two"></div>
+        <button id="closeSearch" type="button" aria-label="Close search">
+          ×
+        </button>
+      </div>
 
+    </div>
+  </section>
+
+
+  <main id="home">
+
+    <!-- =======================================================
+         HERO
+    ======================================================== -->
+    <section class="hero-section">
       <div class="container hero-grid">
 
-        <div class="hero-copy">
+        <div class="hero-content" data-reveal>
 
-          <span class="hero-kicker">
-            THE KRISHNA EDIT
-          </span>
+          <span class="eyebrow">THE KRISHNA JEWELLERS EDIT</span>
 
           <h1>
-            Jewellery made
-            <em>for your moments.</em>
+            Jewellery that feels
+            <em>beautifully yours.</em>
           </h1>
 
           <p>
-            Discover elegant pieces that celebrate love,
-            tradition and every beautiful chapter of life.
+            Discover elegant gold jewellery for weddings, celebrations,
+            gifting and every unforgettable moment.
           </p>
 
           <div class="hero-buttons">
-
-            <a
-              href="#featured"
-              class="gold-button"
-            >
-              Shop Collection
-              <span>→</span>
+            <a href="#featured" class="btn btn-gold">
+              Explore Collection
             </a>
 
-            <a
-              href="https://wa.me/919839902006"
-              class="text-button"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Talk to a Jeweller
+            <a href="#contact" class="btn btn-outline">
+              Visit Our Store
             </a>
-
           </div>
 
-          <div class="hero-trust">
-
-            <span>✦ Trusted Jewellery</span>
-            <span>✦ Personal Assistance</span>
-            <span>✦ Gorakhpur</span>
-
-          </div>
-
-        </div>
-
-
-        <div class="hero-visual">
-
-          <div class="hero-circle"></div>
-
-          <div class="hero-image-card">
-
-            <img
-              src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1200&q=85"
-              alt="Elegant gold jewellery"
-            >
-
-          </div>
-
-          <div class="floating-note">
-            <span>NEW</span>
-            <strong>Golden<br>Moments</strong>
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- CATEGORY STRIP -->
-
-    <section class="category-strip" id="categories">
-
-      <div class="container">
-
-        <div class="section-heading compact">
-
-          <span class="eyebrow">Explore</span>
-
-          <h2>Shop by Category</h2>
-
-        </div>
-
-        <div class="category-grid">
-
-          <button
-            class="category-card category-button"
-            data-category="rings"
-            type="button"
-          >
-            <div class="category-icon">◊</div>
-            <span>Rings</span>
-            <small>Discover</small>
-          </button>
-
-          <button
-            class="category-card category-button"
-            data-category="necklaces"
-            type="button"
-          >
-            <div class="category-icon">◇</div>
-            <span>Necklaces</span>
-            <small>Discover</small>
-          </button>
-
-          <button
-            class="category-card category-button"
-            data-category="earrings"
-            type="button"
-          >
-            <div class="category-icon">✧</div>
-            <span>Earrings</span>
-            <small>Discover</small>
-          </button>
-
-          <button
-            class="category-card category-button"
-            data-category="bangles"
-            type="button"
-          >
-            <div class="category-icon">○</div>
-            <span>Bangles</span>
-            <small>Discover</small>
-          </button>
-
-          <button
-            class="category-card category-button"
-            data-category="bracelets"
-            type="button"
-          >
-            <div class="category-icon">∞</div>
-            <span>Bracelets</span>
-            <small>Discover</small>
-          </button>
-
-          <button
-            class="category-card category-button"
-            data-category="chains"
-            type="button"
-          >
-            <div class="category-icon">⌘</div>
-            <span>Chains</span>
-            <small>Discover</small>
-          </button>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- FEATURED -->
-
-    <section class="product-section" id="featured">
-
-      <div class="container">
-
-        <div class="section-heading split-heading">
-
-          <div>
-            <span class="eyebrow">Curated for you</span>
-            <h2>Featured Jewellery</h2>
-          </div>
-
-          <p>
-            Handpicked pieces to make every occasion
-            a little more beautiful.
-          </p>
-
-        </div>
-
-
-        <div
-          class="modern-product-grid"
-          id="featuredGrid"
-        >
-        </div>
-
-        <div class="section-action">
-          <a
-            href="#all-products"
-            class="outline-button"
-          >
-            View All Jewellery
-            <span>→</span>
-          </a>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- PROMOTIONAL BANNER -->
-
-    <section class="luxury-banner">
-
-      <div class="luxury-banner-pattern"></div>
-
-      <div class="container luxury-banner-inner">
-
-        <div>
-
-          <span class="eyebrow light">
-            Made for celebrations
-          </span>
-
-          <h2>
-            Your wedding.
-            <br>
-            Your jewellery.
-            <br>
-            <em>Your story.</em>
-          </h2>
-
-          <p>
-            Explore beautiful pieces for engagements,
-            weddings and unforgettable celebrations.
-          </p>
-
-          <a
-            href="https://wa.me/919839902006"
-            class="white-button"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Enquire for Wedding Jewellery
-            <span>→</span>
-          </a>
-
-        </div>
-
-        <div class="banner-jewel">
-          <div class="jewel-glow"></div>
-          <span>✦</span>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- NEW ARRIVALS -->
-
-    <section
-      class="product-section lavender-section"
-      id="new-arrivals"
-    >
-
-      <div class="container">
-
-        <div class="section-heading split-heading">
-
-          <div>
-            <span class="eyebrow">Just arrived</span>
-            <h2>New Arrivals</h2>
-          </div>
-
-          <p>
-            Fresh designs waiting to become part of
-            your jewellery collection.
-          </p>
-
-        </div>
-
-
-        <div
-          class="modern-product-grid"
-          id="newArrivalsGrid"
-        >
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- ALL PRODUCTS -->
-
-    <section
-      class="product-section"
-      id="all-products"
-    >
-
-      <div class="container">
-
-        <div class="section-heading">
-
-          <span class="eyebrow">The collection</span>
-
-          <h2>Find Your Favourite</h2>
-
-          <p>
-            Browse our complete jewellery collection.
-          </p>
-
-        </div>
-
-
-        <div class="catalogue-controls">
-
-          <div
-            class="category-filters"
-            id="categoryTabs"
-          >
-
-            <button
-              class="filter-button active"
-              data-category="all"
-              type="button"
-            >
-              All
-            </button>
-
-            <button
-              class="filter-button"
-              data-category="rings"
-              type="button"
-            >
-              Rings
-            </button>
-
-            <button
-              class="filter-button"
-              data-category="necklaces"
-              type="button"
-            >
-              Necklaces
-            </button>
-
-            <button
-              class="filter-button"
-              data-category="earrings"
-              type="button"
-            >
-              Earrings
-            </button>
-
-            <button
-              class="filter-button"
-              data-category="bangles"
-              type="button"
-            >
-              Bangles
-            </button>
-
-            <button
-              class="filter-button"
-              data-category="bracelets"
-              type="button"
-            >
-              Bracelets
-            </button>
-
-            <button
-              class="filter-button"
-              data-category="chains"
-              type="button"
-            >
-              Chains
-            </button>
-
-          </div>
-
-
-          <select
-            id="sortProducts"
-            class="sort-select"
-            aria-label="Sort products"
-          >
-            <option value="featured">Featured</option>
-            <option value="newest">Newest</option>
-            <option value="name">Name</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-          </select>
-
-        </div>
-
-
-        <p
-          id="productResultText"
-          class="result-text"
-        >
-          Loading jewellery...
-        </p>
-
-
-        <div
-          class="modern-product-grid all-products-grid"
-          id="productGrid"
-        >
-        </div>
-
-
-        <div
-          class="empty-state hidden"
-          id="emptyState"
-        >
-
-          <div>✦</div>
-
-          <h3>No jewellery found</h3>
-
-          <p>
-            Try another category or search term.
-          </p>
-
-          <button
-            id="clearFiltersBtn"
-            class="gold-button"
-            type="button"
-          >
-            Clear Filters
-          </button>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- OCCASIONS -->
-
-    <section class="occasion-section">
-
-      <div class="container">
-
-        <div class="section-heading">
-
-          <span class="eyebrow">Shop the mood</span>
-
-          <h2>Jewellery for Every Moment</h2>
-
-        </div>
-
-
-        <div class="occasion-grid">
-
-          <a
-            href="#featured"
-            class="occasion-card occasion-bridal"
-          >
-            <div>
-              <span>For the bride</span>
-              <h3>Bridal Edit</h3>
-              <small>Explore →</small>
-            </div>
-          </a>
-
-          <a
-            href="#featured"
-            class="occasion-card occasion-daily"
-          >
-            <div>
-              <span>For every day</span>
-              <h3>Everyday Gold</h3>
-              <small>Explore →</small>
-            </div>
-          </a>
-
-          <a
-            href="#featured"
-            class="occasion-card occasion-gift"
-          >
-            <div>
-              <span>For someone special</span>
-              <h3>Gift Edit</h3>
-              <small>Explore →</small>
-            </div>
-          </a>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- ABOUT -->
-
-    <section
-      class="about-section"
-      id="about"
-    >
-
-      <div class="container about-grid">
-
-        <div class="about-image">
-
-          <img
-            src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1100&q=85"
-            alt="Fine gold ring"
-            loading="lazy"
-          >
-
-          <div class="about-badge">
-            <strong>Krishna</strong>
-            <span>Jewellers</span>
-          </div>
-
-        </div>
-
-
-        <div class="about-copy">
-
-          <span class="eyebrow">
-            Our story
-          </span>
-
-          <h2>
-            Jewellery is not
-            <em>just jewellery.</em>
-          </h2>
-
-          <p>
-            At Krishna Jewellers, every piece becomes
-            part of someone's story — a celebration,
-            a promise, a gift or a memory.
-          </p>
-
-          <p>
-            From our store in Lohamandi, Gola Bazar,
-            Gorakhpur, we help families find jewellery
-            that feels beautiful, meaningful and truly
-            their own.
-          </p>
-
-          <div class="about-signature">
+          <div class="hero-note">
             <span>✦</span>
-            <div>
-              <strong>Krishna Jewellers</strong>
-              <small>Gorakhpur</small>
-            </div>
+            Fine jewellery • Gorakhpur
+          </div>
+
+        </div>
+
+        <div class="hero-visual" data-reveal>
+
+          <div class="hero-orbit orbit-one"></div>
+          <div class="hero-orbit orbit-two"></div>
+
+          <div class="hero-image-wrap">
+            <img
+              src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1100&q=85"
+              alt="Elegant gold jewellery"
+              loading="eager"
+            >
+          </div>
+
+          <div class="hero-floating-card">
+            <span>01</span>
+            <strong>Golden<br>Elegance</strong>
           </div>
 
         </div>
 
       </div>
-
     </section>
 
 
-    <!-- TRUST -->
+    <!-- =======================================================
+         CATEGORIES
+    ======================================================== -->
+    <section class="section categories-section" id="categories">
+      <div class="container">
 
-    <section class="trust-section">
-
-      <div class="container trust-grid">
-
-        <div class="trust-item">
-          <span>✦</span>
+        <div class="section-heading" data-reveal>
           <div>
-            <strong>Personal Assistance</strong>
-            <small>Guidance from our jewellery team</small>
+            <span class="eyebrow">SHOP BY CATEGORY</span>
+            <h2>Made for every kind of moment.</h2>
           </div>
-        </div>
-
-        <div class="trust-item">
-          <span>◇</span>
-          <div>
-            <strong>Beautiful Designs</strong>
-            <small>Classic and contemporary styles</small>
-          </div>
-        </div>
-
-        <div class="trust-item">
-          <span>♡</span>
-          <div>
-            <strong>Made for Moments</strong>
-            <small>Jewellery for every celebration</small>
-          </div>
-        </div>
-
-        <div class="trust-item">
-          <span>⌂</span>
-          <div>
-            <strong>Visit Our Store</strong>
-            <small>Gola Bazar, Gorakhpur</small>
-          </div>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- CONTACT -->
-
-    <section
-      class="contact-section"
-      id="contact"
-    >
-
-      <div class="container contact-box">
-
-        <div>
-
-          <span class="eyebrow light">
-            Visit Krishna Jewellers
-          </span>
-
-          <h2>
-            Let's find your
-            <em>perfect piece.</em>
-          </h2>
 
           <p>
-            Have a jewellery requirement?
-            Send us a WhatsApp message or email us.
-          </p>
-
-        </div>
-
-
-        <div class="contact-actions">
-
-          <a
-            href="https://wa.me/919839902006"
-            class="white-button"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            WhatsApp Us
-            <span>→</span>
-          </a>
-
-          <a
-            href="mailto:krishnajewellersgkp@gmail.com"
-            class="contact-email"
-          >
-            krishnajewellersgkp@gmail.com
-          </a>
-
-        </div>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <!-- WISHLIST DRAWER -->
-
-  <aside
-    class="drawer"
-    id="wishlistDrawer"
-  >
-
-    <div class="drawer-header">
-
-      <div>
-        <span class="eyebrow">Saved pieces</span>
-        <h2>Your Wishlist</h2>
-      </div>
-
-      <button
-        id="wishlistClose"
-        type="button"
-        class="drawer-close"
-      >
-        ×
-      </button>
-
-    </div>
-
-    <div id="wishlistItems"></div>
-
-  </aside>
-
-
-  <!-- PRODUCT MODAL -->
-
-  <div
-    class="modal-overlay"
-    id="productModal"
-  >
-
-    <div class="product-modal">
-
-      <button
-        id="productModalClose"
-        type="button"
-        class="modal-close"
-      >
-        ×
-      </button>
-
-      <div class="product-modal-grid">
-
-        <div class="modal-product-image">
-          <img
-            id="productModalImage"
-            src=""
-            alt=""
-          >
-        </div>
-
-        <div class="modal-product-info">
-
-          <span
-            id="productModalCategory"
-            class="product-category"
-          ></span>
-
-          <h2 id="productModalName"></h2>
-
-          <p id="productModalDescription"></p>
-
-          <div class="modal-material">
-            <span>Material</span>
-            <strong id="productModalMaterial"></strong>
-          </div>
-
-          <div
-            id="productModalPrice"
-            class="modal-price"
-          ></div>
-
-          <button
-            id="productModalEnquire"
-            class="gold-button wide"
-            type="button"
-          >
-            Enquire on WhatsApp →
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- FOOTER -->
-
-  <footer class="footer">
-
-    <div class="container footer-grid">
-
-      <div class="footer-brand">
-
-        <a href="#home" class="brand">
-          <span class="brand-script">Krishna</span>
-          <span class="brand-main">JEWELLERS</span>
-          <small>GORAKHPUR</small>
-        </a>
-
-        <p>
-          Jewellery for the moments you never want
-          to forget.
-        </p>
-
-        <a
-          href="https://instagram.com/krishna_jewellers_gkp"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="instagram-link"
-        >
-          Instagram @krishna_jewellers_gkp
-        </a>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <h4>Explore</h4>
-
-        <a href="#featured">Featured</a>
-        <a href="#new-arrivals">New Arrivals</a>
-        <a href="#categories">Categories</a>
-        <a href="#about">Our Story</a>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <h4>Contact</h4>
-
-        <a href="tel:+919839902006">
-          9839902006
-        </a>
-
-        <a href="tel:+917394872651">
-          7394872651
-        </a>
-
-        <a href="mailto:krishnajewellersgkp@gmail.com">
-          krishnajewellersgkp@gmail.com
-        </a>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <h4>Visit</h4>
-
-        <p>
-          Lohamandi, Gola Bazar
-          <br>
-          Gorakhpur, Uttar Pradesh
-        </p>
-
-        <p>
-          9:30 AM – 7:00 PM
-        </p>
-
-        <a
-          href="https://wa.me/919839902006"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Chat on WhatsApp →
-        </a>
-
-      </div>
-
-    </div>
-
-
-    <div class="container footer-bottom">
-
-      <span>
-        © <span id="currentYear"></span>
-        Krishna Jewellers. All rights reserved.
-      </span>
-
-      <span>
-        Fine Jewellery • Gorakhpur
-      </span>
-
-    </div>
-
-  </footer>
-
-
-  <!-- WHATSAPP -->
-
-  <a
-    href="https://wa.me/919839902006"
-    class="floating-whatsapp"
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label="WhatsApp Krishna Jewellers"
-  >
-    <span>◉</span>
-  </a>
-
-
-  <!-- SUPABASE -->
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
-  <script src="script.js"></script>
-
-</body>
-</html>
+            From delicate everyday pieces to statement wedding jewellery,
+            find a style that feels
