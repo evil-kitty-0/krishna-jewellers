@@ -1,608 +1,863 @@
 "use strict";
 
-(() => {
+/*
+  ============================================================
+  KRISHNA JEWELLERS
+  Public Storefront JavaScript
+  ============================================================
 
-  const config = window.KRISHNA_SUPABASE || {};
+  Features:
+  - Supabase product loading
+  - Featured products
+  - New arrivals
+  - Category filtering
+  - Search
+  - Sorting
+  - Wishlist
+  - Product details modal
+  - WhatsApp enquiry
+  - Mobile navigation
+  - Search panel
+  - Scroll reveal animations
 
-  const SUPABASE_URL = String(config.url || "").replace(/\/$/, "");
-  const SUPABASE_KEY = String(config.key || "");
-
-  const supabaseClient =
-    window.supabase &&
-    SUPABASE_URL &&
-    SUPABASE_KEY &&
-    !SUPABASE_KEY.includes("YOUR_")
-      ? window.supabase.createClient(
-          SUPABASE_URL,
-          SUPABASE_KEY
-        )
-      : null;
-
-
-  const DEMO_PRODUCTS = [
-
-    {
-      id: "demo-ring",
-      name: "Golden Promise Ring",
-      category: "rings",
-      price: 0,
-      description:
-        "A delicate gold ring designed for timeless everyday elegance.",
-      material: "Gold",
-      sku: "DEMO-RING-001",
-      image_url:
-        "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=85",
-      images: [],
-      featured: true,
-      is_published: true,
-      created_at: new Date().toISOString()
-    },
-
-    {
-      id: "demo-necklace",
-      name: "Royal Gold Necklace",
-      category: "necklaces",
-      price: 0,
-      description:
-        "A graceful statement necklace for weddings and celebrations.",
-      material: "Gold",
-      sku: "DEMO-NK-001",
-      image_url:
-        "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=85",
-      images: [],
-      featured: true,
-      is_published: true,
-      created_at: new Date().toISOString()
-    },
-
-    {
-      id: "demo-earrings",
-      name: "Pearl Glow Earrings",
-      category: "earrings",
-      price: 0,
-      description:
-        "Elegant earrings created for a soft and sophisticated look.",
-      material: "Gold & Pearl",
-      sku: "DEMO-EAR-001",
-      image_url:
-        "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=85",
-      images: [],
-      featured: true,
-      is_published: true,
-      created_at: new Date().toISOString()
-    },
-
-    {
-      id: "demo-bangles",
-      name: "Heritage Gold Bangles",
-      category: "bangles",
-      price: 0,
-      description:
-        "Traditional-inspired bangles with a refined contemporary finish.",
-      material: "Gold",
-      sku: "DEMO-BAN-001",
-      image_url:
-        "https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=85",
-      images: [],
-      featured: false,
-      is_published: true,
-      created_at: new Date().toISOString()
-    }
-
-  ];
+  No cart.
+  No checkout.
+*/
 
 
-  const state = {
+/* ============================================================
+   SUPABASE
+============================================================ */
 
-    products: [],
+const SUPABASE_CONFIG = window.KRISHNA_SUPABASE || {};
 
-    filteredProducts: [],
-
-    activeCategory: "all",
-
-    searchTerm: "",
-
-    sort: "featured",
-
-    wishlist: loadWishlist(),
-
-    currentProduct: null
-
-  };
+const supabaseClient =
+  window.supabase &&
+  SUPABASE_CONFIG.url &&
+  SUPABASE_CONFIG.key
+    ? window.supabase.createClient(
+        SUPABASE_CONFIG.url,
+        SUPABASE_CONFIG.key
+      )
+    : null;
 
 
-  document.addEventListener(
-    "DOMContentLoaded",
-    init
-  );
+/* ============================================================
+   BUSINESS
+============================================================ */
+
+const BUSINESS = {
+  name: "Krishna Jewellers",
+  phone: "9839902006",
+  secondPhone: "7394872651",
+  whatsapp: "919839902006",
+  email: "krishnajewellersgkp@gmail.com",
+  instagram: "https://www.instagram.com/krishna_jewellers_gkp/",
+  address: "Lohamandi, Gola Bazar, Gorakhpur",
+  hours: "9:30 AM — 7:00 PM"
+};
 
 
-  async function init() {
+/* ============================================================
+   STATE
+============================================================ */
 
-    setupHeader();
+const state = {
+  products: [],
+  filteredProducts: [],
+  activeCategory: "all",
+  searchTerm: "",
+  sort: "newest",
+  wishlist: loadWishlist()
+};
 
-    setupMobileMenu();
 
-    setupSearch();
+/* ============================================================
+   DOM
+============================================================ */
 
-    setupWishlist();
+const elements = {
+  featuredGrid:
+    document.getElementById("featuredGrid"),
 
-    setupModal();
+  newArrivalsGrid:
+    document.getElementById("newArrivalsGrid"),
 
-    setupCategories();
+  productGrid:
+    document.getElementById("productGrid"),
 
-    setupSorting();
+  emptyState:
+    document.getElementById("emptyState"),
 
-    setupCategoryCards();
+  sortSelect:
+    document.getElementById("sortSelect"),
 
-    setupClearFilters();
+  clearFiltersBtn:
+    document.getElementById("clearFiltersBtn"),
 
-    setupScrollAnimations();
+  globalSearch:
+    document.getElementById("globalSearch"),
 
-    setCurrentYear();
+  searchToggle:
+    document.getElementById("searchToggle"),
 
-    await loadProducts();
+  searchPanel:
+    document.getElementById("searchPanel"),
+
+  closeSearch:
+    document.getElementById("closeSearch"),
+
+  wishlistToggle:
+    document.getElementById("wishlistToggle"),
+
+  wishlistCount:
+    document.getElementById("wishlistCount"),
+
+  wishlistDrawer:
+    document.getElementById("wishlistDrawer"),
+
+  closeWishlist:
+    document.getElementById("closeWishlist"),
+
+  wishlistContent:
+    document.getElementById("wishlistContent"),
+
+  drawerBackdrop:
+    document.getElementById("drawerBackdrop"),
+
+  productModal:
+    document.getElementById("productModal"),
+
+  modalBackdrop:
+    document.getElementById("modalBackdrop"),
+
+  modalClose:
+    document.getElementById("modalClose"),
+
+  productModalImage:
+    document.getElementById("productModalImage"),
+
+  productModalCategory:
+    document.getElementById("productModalCategory"),
+
+  productModalName:
+    document.getElementById("productModalName"),
+
+  productModalPrice:
+    document.getElementById("productModalPrice"),
+
+  productModalDescription:
+    document.getElementById("productModalDescription"),
+
+  productModalMaterial:
+    document.getElementById("productModalMaterial"),
+
+  productModalSku:
+    document.getElementById("productModalSku"),
+
+  productModalWhatsApp:
+    document.getElementById("productModalWhatsApp"),
+
+  menuToggle:
+    document.getElementById("menuToggle"),
+
+  mainNav:
+    document.getElementById("mainNav"),
+
+  currentYear:
+    document.getElementById("currentYear")
+};
+
+
+/* ============================================================
+   INITIALIZATION
+============================================================ */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initialize
+);
+
+
+async function initialize() {
+
+  setCurrentYear();
+
+  bindEvents();
+
+  updateWishlistCount();
+
+  initializeRevealAnimations();
+
+  await loadProducts();
+
+  renderEverything();
+
+}
+
+
+/* ============================================================
+   EVENTS
+============================================================ */
+
+function bindEvents() {
+
+  /*
+    Search
+  */
+
+  if (elements.searchToggle) {
+    elements.searchToggle.addEventListener(
+      "click",
+      openSearch
+    );
+  }
+
+  if (elements.closeSearch) {
+    elements.closeSearch.addEventListener(
+      "click",
+      closeSearch
+    );
+  }
+
+  if (elements.globalSearch) {
+    elements.globalSearch.addEventListener(
+      "input",
+      handleSearch
+    );
+  }
+
+
+  /*
+    Wishlist
+  */
+
+  if (elements.wishlistToggle) {
+    elements.wishlistToggle.addEventListener(
+      "click",
+      openWishlist
+    );
+  }
+
+  if (elements.closeWishlist) {
+    elements.closeWishlist.addEventListener(
+      "click",
+      closeWishlist
+    );
+  }
+
+  if (elements.drawerBackdrop) {
+    elements.drawerBackdrop.addEventListener(
+      "click",
+      closeWishlist
+    );
+  }
+
+
+  /*
+    Product modal
+  */
+
+  if (elements.modalClose) {
+    elements.modalClose.addEventListener(
+      "click",
+      closeProductModal
+    );
+  }
+
+  if (elements.modalBackdrop) {
+    elements.modalBackdrop.addEventListener(
+      "click",
+      closeProductModal
+    );
+  }
+
+
+  /*
+    Mobile navigation
+  */
+
+  if (elements.menuToggle) {
+    elements.menuToggle.addEventListener(
+      "click",
+      toggleMobileNavigation
+    );
+  }
+
+
+  /*
+    Close mobile nav after click
+  */
+
+  if (elements.mainNav) {
+
+    elements.mainNav
+      .querySelectorAll("a")
+      .forEach(link => {
+
+        link.addEventListener(
+          "click",
+          () => {
+            elements.mainNav.classList.remove("open");
+          }
+        );
+
+      });
 
   }
 
 
-  /* PRODUCTS */
+  /*
+    Category buttons
+  */
 
-  async function loadProducts() {
+  document
+    .querySelectorAll(".category-card")
+    .forEach(button => {
 
-    let products = [];
+      button.addEventListener(
+        "click",
+        () => {
 
-    if (supabaseClient) {
+          const category =
+            button.dataset.category || "all";
 
-      try {
+          setCategory(category);
 
-        const {
-          data,
-          error
-        } = await supabaseClient
-          .from("products")
-          .select("*")
-          .eq("is_published", true)
-          .order("created_at", {
-            ascending: false
-          });
+          const collection =
+            document.getElementById("collection");
 
-        if (error) {
-
-          console.error(
-            "Supabase catalogue error:",
-            error
-          );
-
-        } else {
-
-          products =
-            (data || [])
-              .map(normalizeProduct);
+          if (collection) {
+            collection.scrollIntoView({
+              behavior: "smooth"
+            });
+          }
 
         }
+      );
 
-      } catch (error) {
+    });
 
-        console.error(
-          "Catalogue error:",
-          error
-        );
+
+  /*
+    Filter buttons
+  */
+
+  document
+    .querySelectorAll(".filter-button")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const category =
+            button.dataset.filter || "all";
+
+          setCategory(category);
+
+        }
+      );
+
+    });
+
+
+  /*
+    Sorting
+  */
+
+  if (elements.sortSelect) {
+
+    elements.sortSelect.addEventListener(
+      "change",
+      event => {
+
+        state.sort =
+          event.target.value || "newest";
+
+        renderCatalogue();
 
       }
+    );
 
+  }
+
+
+  /*
+    Clear filters
+  */
+
+  if (elements.clearFiltersBtn) {
+
+    elements.clearFiltersBtn.addEventListener(
+      "click",
+      clearFilters
+    );
+
+  }
+
+
+  /*
+    Escape key
+  */
+
+  document.addEventListener(
+    "keydown",
+    event => {
+
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      closeSearch();
+      closeWishlist();
+      closeProductModal();
+
+    }
+  );
+
+}
+
+
+/* ============================================================
+   LOAD PRODUCTS
+============================================================ */
+
+async function loadProducts() {
+
+  /*
+    If Supabase is unavailable, show a useful empty state.
+    We intentionally do NOT create fake frontend products.
+  */
+
+  if (!supabaseClient) {
+
+    state.products = [];
+
+    return;
+
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabaseClient
+      .from("products")
+      .select("*")
+      .eq("is_published", true)
+      .order("created_at", {
+        ascending: false
+      });
+
+
+    if (error) {
+      throw error;
     }
 
 
     state.products =
-      products.length
-        ? products
-        : DEMO_PRODUCTS;
+      Array.isArray(data)
+        ? data.map(normalizeProduct)
+        : [];
 
+  } catch (error) {
 
-    applyFilters();
+    console.error(
+      "Unable to load jewellery catalogue:",
+      error
+    );
 
-    renderFeatured();
-
-    renderNewArrivals();
-
-  }
-
-
-  function normalizeProduct(product) {
-
-    let images = [];
-
-    if (Array.isArray(product.images)) {
-
-      images =
-        product.images
-          .map(image => {
-
-            if (typeof image === "string") {
-
-              return {
-                url: image,
-                path: ""
-              };
-
-            }
-
-            if (
-              image &&
-              typeof image === "object" &&
-              image.url
-            ) {
-
-              return {
-                url: image.url,
-                path: image.path || ""
-              };
-
-            }
-
-            return null;
-
-          })
-          .filter(Boolean);
-
-    }
-
-
-    return {
-
-      id: product.id,
-
-      name:
-        product.name ||
-        "Beautiful Jewellery",
-
-      category:
-        String(
-          product.category || "other"
-        ).toLowerCase(),
-
-      price:
-        Number(product.price || 0),
-
-      description:
-        product.description ||
-        "Beautifully crafted jewellery from Krishna Jewellers.",
-
-      material:
-        product.material ||
-        "Gold",
-
-      sku:
-        product.sku ||
-        "",
-
-      image_url:
-        product.image_url ||
-        images[0]?.url ||
-        "",
-
-      images,
-
-      featured:
-        Boolean(product.featured),
-
-      is_published:
-        Boolean(product.is_published),
-
-      created_at:
-        product.created_at ||
-        new Date().toISOString()
-
-    };
+    state.products = [];
 
   }
 
-
-  /* FILTER */
-
-  function applyFilters() {
-
-    let products =
-      [...state.products];
+}
 
 
-    if (
-      state.activeCategory !== "all"
-    ) {
+/* ============================================================
+   NORMALIZE PRODUCT
+============================================================ */
 
-      products =
-        products.filter(
-          product =>
-            product.category ===
-            state.activeCategory
-        );
+function normalizeProduct(product) {
 
-    }
+  const images =
+    normalizeImages(product.images);
 
+  const imageUrl =
+    images[0]?.url ||
+    product.image_url ||
+    createPlaceholderImage(
+      product.name || "Krishna Jewellers"
+    );
 
-    if (state.searchTerm) {
+  return {
+    ...product,
 
-      const term =
-        state.searchTerm.toLowerCase();
+    id:
+      product.id,
 
+    name:
+      product.name ||
+      "Beautiful Jewellery",
 
-      products =
-        products.filter(
-          product =>
-            [
-              product.name,
-              product.category,
-              product.description,
-              product.material,
-              product.sku
-            ]
-              .join(" ")
-              .toLowerCase()
-              .includes(term)
-        );
+    category:
+      product.category ||
+      "Jewellery",
 
-    }
+    price:
+      Number(product.price) || 0,
 
+    description:
+      product.description ||
+      "Beautiful jewellery from Krishna Jewellers.",
 
-    products.sort(
-      (a, b) => {
+    material:
+      product.material ||
+      "Gold",
 
-        switch (state.sort) {
+    sku:
+      product.sku ||
+      "Available in store",
 
-          case "newest":
+    image_url:
+      imageUrl,
 
-            return (
-              new Date(b.created_at) -
-              new Date(a.created_at)
-            );
+    images,
 
+    featured:
+      Boolean(product.featured),
 
-          case "name":
+    created_at:
+      product.created_at ||
+      null
 
-            return a.name.localeCompare(
-              b.name
-            );
+  };
 
-
-          case "price-low":
-
-            return a.price - b.price;
-
-
-          case "price-high":
-
-            return b.price - a.price;
+}
 
 
-          case "featured":
+/* ============================================================
+   NORMALIZE IMAGES
+============================================================ */
 
-          default:
+function normalizeImages(images) {
 
-            return (
-              Number(b.featured) -
-              Number(a.featured)
-            );
+  if (!images) {
+    return [];
+  }
 
+
+  if (Array.isArray(images)) {
+
+    return images
+      .map(image => {
+
+        if (typeof image === "string") {
+          return {
+            url: image,
+            path: ""
+          };
         }
 
-      }
-    );
+        if (
+          image &&
+          typeof image === "object" &&
+          image.url
+        ) {
+          return {
+            url: image.url,
+            path: image.path || ""
+          };
+        }
 
+        return null;
 
-    state.filteredProducts =
-      products;
-
-
-    renderAllProducts();
-
-  }
-
-
-  /* FEATURED */
-
-  function renderFeatured() {
-
-    const container =
-      document.getElementById(
-        "featuredGrid"
-      );
-
-    if (!container) return;
-
-
-    let products =
-      [...state.products]
-        .filter(product =>
-          product.featured
-        );
-
-
-    if (!products.length) {
-
-      products =
-        [...state.products]
-          .slice(0, 4);
-
-    }
-
-
-    renderProductCollection(
-      container,
-      products.slice(0, 4)
-    );
+      })
+      .filter(Boolean);
 
   }
 
 
-  /* NEW ARRIVALS */
+  if (typeof images === "string") {
 
-  function renderNewArrivals() {
+    try {
 
-    const container =
-      document.getElementById(
-        "newArrivalsGrid"
-      );
+      const parsed =
+        JSON.parse(images);
 
-    if (!container) return;
+      return normalizeImages(parsed);
 
-
-    const products =
-      [...state.products]
-        .sort(
-          (a, b) =>
-            new Date(b.created_at) -
-            new Date(a.created_at)
-        )
-        .slice(0, 4);
-
-
-    renderProductCollection(
-      container,
-      products
-    );
-
-  }
-
-
-  /* ALL PRODUCTS */
-
-  function renderAllProducts() {
-
-    const container =
-      document.getElementById(
-        "productGrid"
-      );
-
-    if (!container) return;
-
-
-    renderProductCollection(
-      container,
-      state.filteredProducts
-    );
-
-
-    const result =
-      document.getElementById(
-        "productResultText"
-      );
-
-
-    if (result) {
-
-      result.textContent =
-        `${state.filteredProducts.length} ${
-          state.filteredProducts.length === 1
-            ? "piece"
-            : "pieces"
-        } available`;
-
-    }
-
-
-    const empty =
-      document.getElementById(
-        "emptyState"
-      );
-
-
-    if (empty) {
-
-      empty.classList.toggle(
-        "hidden",
-        state.filteredProducts.length > 0
-      );
-
+    } catch {
+      return [];
     }
 
   }
 
 
-  function renderProductCollection(
-    container,
+  return [];
+
+}
+
+
+/* ============================================================
+   RENDER EVERYTHING
+============================================================ */
+
+function renderEverything() {
+
+  renderFeatured();
+
+  renderNewArrivals();
+
+  renderCatalogue();
+
+  updateWishlistCount();
+
+}
+
+
+/* ============================================================
+   FEATURED
+============================================================ */
+
+function renderFeatured() {
+
+  if (!elements.featuredGrid) {
+    return;
+  }
+
+
+  const featured =
+    state.products
+      .filter(product => product.featured)
+      .slice(0, 4);
+
+
+  const products =
+    featured.length > 0
+      ? featured
+      : state.products.slice(0, 4);
+
+
+  if (!products.length) {
+
+    elements.featuredGrid.innerHTML =
+      createNoProductsMessage(
+        "Your featured jewellery will appear here."
+      );
+
+    return;
+
+  }
+
+
+  elements.featuredGrid.innerHTML =
     products
-  ) {
+      .map(createProductCard)
+      .join("");
 
-    container.innerHTML = "";
+}
 
 
-    products.forEach(
-      (product, index) => {
+/* ============================================================
+   NEW ARRIVALS
+============================================================ */
 
-        const card =
-          createProductCard(
-            product,
-            index
-          );
+function renderNewArrivals() {
 
-        container.appendChild(card);
+  if (!elements.newArrivalsGrid) {
+    return;
+  }
 
-      }
-    );
+
+  const products =
+    [...state.products]
+      .sort(sortByNewest)
+      .slice(0, 4);
+
+
+  if (!products.length) {
+
+    elements.newArrivalsGrid.innerHTML =
+      createNoProductsMessage(
+        "New jewellery added from Admin will appear here."
+      );
+
+    return;
 
   }
 
 
-  /* CARD */
+  elements.newArrivalsGrid.innerHTML =
+    products
+      .map(createProductCard)
+      .join("");
 
-  function createProductCard(
-    product,
-    index
-  ) {
+}
 
-    const card =
-      document.createElement(
-        "article"
+
+/* ============================================================
+   CATALOGUE
+============================================================ */
+
+function renderCatalogue() {
+
+  if (!elements.productGrid) {
+    return;
+  }
+
+
+  let products =
+    [...state.products];
+
+
+  /*
+    Category
+  */
+
+  if (state.activeCategory !== "all") {
+
+    products =
+      products.filter(
+        product =>
+          normalizeText(product.category) ===
+          normalizeText(state.activeCategory)
       );
 
-
-    card.className =
-      "product-card";
+  }
 
 
-    card.style.animationDelay =
-      `${Math.min(index * 70, 450)}ms`;
+  /*
+    Search
+  */
+
+  if (state.searchTerm) {
+
+    const query =
+      normalizeText(state.searchTerm);
+
+    products =
+      products.filter(product => {
+
+        const searchable =
+          [
+            product.name,
+            product.category,
+            product.description,
+            product.material,
+            product.sku
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+        return normalizeText(searchable)
+          .includes(query);
+
+      });
+
+  }
 
 
-    const image =
-      product.image_url ||
-      product.images?.[0]?.url ||
-      fallbackImage();
+  /*
+    Sort
+  */
+
+  products.sort(
+    getSortFunction(state.sort)
+  );
 
 
-    const wished =
-      state.wishlist.includes(
-        product.id
-      );
+  state.filteredProducts =
+    products;
 
 
-    card.innerHTML = `
+  /*
+    Empty state
+  */
+
+  if (!products.length) {
+
+    elements.productGrid.innerHTML = "";
+
+    if (elements.emptyState) {
+      elements.emptyState.hidden = false;
+    }
+
+    return;
+
+  }
+
+
+  if (elements.emptyState) {
+    elements.emptyState.hidden = true;
+  }
+
+
+  elements.productGrid.innerHTML =
+    products
+      .map(createProductCard)
+      .join("");
+
+}
+
+
+/* ============================================================
+   PRODUCT CARD
+============================================================ */
+
+function createProductCard(product) {
+
+  const isWishlisted =
+    state.wishlist.includes(
+      String(product.id)
+    );
+
+
+  const badge =
+    product.featured
+      ? `<span class="product-badge">Featured</span>`
+      : "";
+
+
+  const price =
+    formatPrice(product.price);
+
+
+  return `
+    <article
+      class="product-card"
+      data-product-id="${escapeAttribute(product.id)}"
+    >
 
       <div class="product-image">
 
         <img
-          src="${escapeAttribute(image)}"
+          src="${escapeAttribute(product.image_url)}"
           alt="${escapeAttribute(product.name)}"
           loading="lazy"
+          onerror="this.src='${escapeAttribute(
+            createPlaceholderImage(product.name)
+          )}'"
         >
 
-        ${
-          product.featured
-            ? `<span class="product-badge">
-                 Featured
-               </span>`
-            : ""
-        }
+        ${badge}
 
         <button
-          class="product-wishlist ${
-            wished ? "active" : ""
-          }"
           type="button"
-          aria-label="Wishlist"
+          class="wishlist-product-button ${
+            isWishlisted ? "active" : ""
+          }"
+          data-wishlist-id="${escapeAttribute(product.id)}"
+          aria-label="${
+            isWishlisted
+              ? "Remove from wishlist"
+              : "Add to wishlist"
+          }"
         >
-          ${wished ? "♥" : "♡"}
+          ${isWishlisted ? "♥" : "♡"}
         </button>
 
       </div>
@@ -610,1293 +865,1076 @@
 
       <div class="product-info">
 
-        <div class="product-category">
-          ${escapeHTML(
-            formatCategory(
-              product.category
-            )
-          )}
-        </div>
+        <span class="product-category">
+          ${escapeHTML(product.category)}
+        </span>
 
         <h3 class="product-name">
-          ${escapeHTML(
-            product.name
-          )}
+          ${escapeHTML(product.name)}
         </h3>
 
         <p class="product-description">
-          ${escapeHTML(
-            product.description
-          )}
+          ${escapeHTML(product.description)}
         </p>
 
-        <div class="product-price">
-          ${
-            product.price > 0
-              ? formatCurrency(
-                  product.price
-                )
-              : "Price on enquiry"
-          }
-        </div>
+        <div class="product-bottom">
 
-
-        <div class="product-actions">
+          <span class="product-price">
+            ${price}
+          </span>
 
           <button
-            class="btn btn-outline view-product"
             type="button"
+            class="product-view"
+            data-view-product="${escapeAttribute(product.id)}"
           >
-            View
-          </button>
-
-          <button
-            class="btn btn-gold enquire-product"
-            type="button"
-          >
-            Enquire
+            View Details →
           </button>
 
         </div>
 
       </div>
 
-    `;
+    </article>
+  `;
+
+}
 
 
-    card
-      .querySelector(
-        ".product-wishlist"
-      )
-      ?.addEventListener(
-        "click",
-        () =>
-          toggleWishlist(
-            product.id
-          )
+/* ============================================================
+   EVENT DELEGATION FOR PRODUCTS
+============================================================ */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const wishlistButton =
+      event.target.closest(
+        "[data-wishlist-id]"
       );
 
 
-    card
-      .querySelector(
-        ".view-product"
-      )
-      ?.addEventListener(
-        "click",
-        () =>
-          openProductModal(
-            product.id
-          )
+    if (wishlistButton) {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      toggleWishlist(
+        wishlistButton.dataset.wishlistId
       );
-
-
-    card
-      .querySelector(
-        ".enquire-product"
-      )
-      ?.addEventListener(
-        "click",
-        () =>
-          sendWhatsAppEnquiry(
-            product
-          )
-      );
-
-
-    return card;
-
-  }
-
-
-  /* CATEGORY */
-
-  function setupCategories() {
-
-    document
-      .querySelectorAll(
-        ".filter-button"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            document
-              .querySelectorAll(
-                ".filter-button"
-              )
-              .forEach(
-                item =>
-                  item.classList.remove(
-                    "active"
-                  )
-              );
-
-
-            button.classList.add(
-              "active"
-            );
-
-
-            state.activeCategory =
-              button.dataset.category ||
-              "all";
-
-
-            applyFilters();
-
-          }
-        );
-
-      });
-
-  }
-
-
-  function setupCategoryCards() {
-
-    document
-      .querySelectorAll(
-        ".category-button"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            const category =
-              button.dataset.category;
-
-
-            state.activeCategory =
-              category;
-
-
-            document
-              .querySelectorAll(
-                ".filter-button"
-              )
-              .forEach(
-                filter => {
-
-                  filter.classList.toggle(
-                    "active",
-                    filter.dataset.category ===
-                      category
-                  );
-
-                }
-              );
-
-
-            applyFilters();
-
-
-            document
-              .getElementById(
-                "all-products"
-              )
-              ?.scrollIntoView({
-                behavior: "smooth"
-              });
-
-          }
-        );
-
-      });
-
-  }
-
-
-  /* SORT */
-
-  function setupSorting() {
-
-    document
-      .getElementById(
-        "sortProducts"
-      )
-      ?.addEventListener(
-        "change",
-        event => {
-
-          state.sort =
-            event.target.value;
-
-          applyFilters();
-
-        }
-      );
-
-  }
-
-
-  /* SEARCH */
-
-  function setupSearch() {
-
-    const toggle =
-      document.getElementById(
-        "searchToggle"
-      );
-
-    const panel =
-      document.getElementById(
-        "searchPanel"
-      );
-
-    const close =
-      document.getElementById(
-        "searchClose"
-      );
-
-    const input =
-      document.getElementById(
-        "searchInput"
-      );
-
-
-    toggle?.addEventListener(
-      "click",
-      () => {
-
-        panel?.classList.toggle(
-          "open"
-        );
-
-        if (
-          panel?.classList.contains(
-            "open"
-          )
-        ) {
-
-          setTimeout(
-            () =>
-              input?.focus(),
-            100
-          );
-
-        }
-
-      }
-    );
-
-
-    close?.addEventListener(
-      "click",
-      () => {
-
-        panel?.classList.remove(
-          "open"
-        );
-
-      }
-    );
-
-
-    input?.addEventListener(
-      "input",
-      event => {
-
-        state.searchTerm =
-          event.target.value.trim();
-
-        applyFilters();
-
-      }
-    );
-
-  }
-
-
-  /* HEADER */
-
-  function setupHeader() {
-
-    const header =
-      document.getElementById(
-        "siteHeader"
-      );
-
-
-    const update =
-      () => {
-
-        header?.classList.toggle(
-          "scrolled",
-          window.scrollY > 15
-        );
-
-      };
-
-
-    update();
-
-
-    window.addEventListener(
-      "scroll",
-      update,
-      {
-        passive: true
-      }
-    );
-
-  }
-
-
-  /* MOBILE */
-
-  function setupMobileMenu() {
-
-    const button =
-      document.getElementById(
-        "mobileMenuBtn"
-      );
-
-    const nav =
-      document.getElementById(
-        "mainNav"
-      );
-
-
-    button?.addEventListener(
-      "click",
-      () => {
-
-        nav?.classList.toggle(
-          "open"
-        );
-
-      }
-    );
-
-
-    nav
-      ?.querySelectorAll("a")
-      .forEach(link => {
-
-        link.addEventListener(
-          "click",
-          () =>
-            nav.classList.remove(
-              "open"
-            )
-        );
-
-      });
-
-  }
-
-
-  /* WISHLIST */
-
-  function loadWishlist() {
-
-    try {
-
-      const saved =
-        localStorage.getItem(
-          "krishna_wishlist"
-        );
-
-
-      const parsed =
-        JSON.parse(
-          saved || "[]"
-        );
-
-
-      return Array.isArray(parsed)
-        ? parsed
-        : [];
-
-    } catch {
-
-      return [];
-
-    }
-
-  }
-
-
-  function saveWishlist() {
-
-    localStorage.setItem(
-      "krishna_wishlist",
-      JSON.stringify(
-        state.wishlist
-      )
-    );
-
-  }
-
-
-  function setupWishlist() {
-
-    document
-      .getElementById(
-        "wishlistBtn"
-      )
-      ?.addEventListener(
-        "click",
-        () => {
-
-          renderWishlist();
-
-          openDrawer(
-            document.getElementById(
-              "wishlistDrawer"
-            )
-          );
-
-        }
-      );
-
-
-    document
-      .getElementById(
-        "wishlistClose"
-      )
-      ?.addEventListener(
-        "click",
-        () => {
-
-          closeDrawer(
-            document.getElementById(
-              "wishlistDrawer"
-            )
-          );
-
-        }
-      );
-
-
-    updateWishlistCount();
-
-  }
-
-
-  function toggleWishlist(
-    productId
-  ) {
-
-    const index =
-      state.wishlist.indexOf(
-        productId
-      );
-
-
-    if (index >= 0) {
-
-      state.wishlist.splice(
-        index,
-        1
-      );
-
-      showToast(
-        "Removed from wishlist"
-      );
-
-    } else {
-
-      state.wishlist.push(
-        productId
-      );
-
-      showToast(
-        "Added to wishlist"
-      );
-
-    }
-
-
-    saveWishlist();
-
-    updateWishlistCount();
-
-    renderAllProducts();
-
-    renderFeatured();
-
-    renderNewArrivals();
-
-  }
-
-
-  function updateWishlistCount() {
-
-    const count =
-      document.getElementById(
-        "wishlistCount"
-      );
-
-
-    if (!count) return;
-
-
-    count.textContent =
-      state.wishlist.length;
-
-
-    count.classList.toggle(
-      "hidden",
-      state.wishlist.length === 0
-    );
-
-  }
-
-
-  function renderWishlist() {
-
-    const container =
-      document.getElementById(
-        "wishlistItems"
-      );
-
-
-    if (!container) return;
-
-
-    const products =
-      state.wishlist
-        .map(
-          id =>
-            state.products.find(
-              product =>
-                product.id === id
-            )
-        )
-        .filter(Boolean);
-
-
-    container.innerHTML = "";
-
-
-    if (!products.length) {
-
-      container.innerHTML = `
-
-        <div class="empty-state">
-
-          <div>♡</div>
-
-          <h3>
-            Your wishlist is empty
-          </h3>
-
-          <p>
-            Save beautiful pieces here.
-          </p>
-
-        </div>
-
-      `;
 
       return;
 
     }
 
 
-    products.forEach(
-      product => {
-
-        const item =
-          document.createElement(
-            "div"
-          );
+    const productButton =
+      event.target.closest(
+        "[data-view-product]"
+      );
 
 
-        item.className =
-          "wishlist-item";
+    if (productButton) {
+
+      event.preventDefault();
+
+      openProduct(
+        productButton.dataset.viewProduct
+      );
+
+      return;
+
+    }
 
 
-        item.innerHTML = `
+    const productCard =
+      event.target.closest(
+        ".product-card"
+      );
 
-          <img
-            src="${escapeAttribute(
-              product.image_url
-            )}"
-            alt="${escapeAttribute(
-              product.name
-            )}"
+
+    if (
+      productCard &&
+      !event.target.closest("button")
+    ) {
+
+      openProduct(
+        productCard.dataset.productId
+      );
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   PRODUCT MODAL
+============================================================ */
+
+function openProduct(productId) {
+
+  const product =
+    state.products.find(
+      item =>
+        String(item.id) ===
+        String(productId)
+    );
+
+
+  if (!product || !elements.productModal) {
+    return;
+  }
+
+
+  elements.productModalImage.src =
+    product.image_url;
+
+  elements.productModalImage.alt =
+    product.name;
+
+
+  elements.productModalCategory.textContent =
+    product.category;
+
+
+  elements.productModalName.textContent =
+    product.name;
+
+
+  elements.productModalPrice.textContent =
+    formatPrice(product.price);
+
+
+  elements.productModalDescription.textContent =
+    product.description;
+
+
+  elements.productModalMaterial.textContent =
+    product.material;
+
+
+  elements.productModalSku.textContent =
+    product.sku;
+
+
+  const message =
+    [
+      "Hello Krishna Jewellers,",
+      "",
+      `I am interested in: ${product.name}`,
+      `Category: ${product.category}`,
+      product.sku
+        ? `SKU: ${product.sku}`
+        : "",
+      "",
+      "Please share more details."
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+
+  elements.productModalWhatsApp.href =
+    `https://wa.me/${BUSINESS.whatsapp}?text=${encodeURIComponent(
+      message
+    )}`;
+
+
+  elements.productModal.classList.add("open");
+
+  elements.productModal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.classList.add("no-scroll");
+
+}
+
+
+/* ============================================================
+   CLOSE PRODUCT
+============================================================ */
+
+function closeProductModal() {
+
+  if (!elements.productModal) {
+    return;
+  }
+
+  elements.productModal.classList.remove("open");
+
+  elements.productModal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  document.body.classList.remove("no-scroll");
+
+}
+
+
+/* ============================================================
+   WISHLIST
+============================================================ */
+
+function loadWishlist() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        "krishna_jewellers_wishlist"
+      );
+
+
+    const parsed =
+      saved
+        ? JSON.parse(saved)
+        : [];
+
+
+    return Array.isArray(parsed)
+      ? parsed.map(String)
+      : [];
+
+  } catch {
+
+    return [];
+
+  }
+
+}
+
+
+/* ============================================================
+   SAVE WISHLIST
+============================================================ */
+
+function saveWishlist() {
+
+  localStorage.setItem(
+    "krishna_jewellers_wishlist",
+    JSON.stringify(state.wishlist)
+  );
+
+}
+
+
+/* ============================================================
+   TOGGLE WISHLIST
+============================================================ */
+
+function toggleWishlist(productId) {
+
+  const id =
+    String(productId);
+
+
+  const index =
+    state.wishlist.indexOf(id);
+
+
+  if (index >= 0) {
+
+    state.wishlist.splice(index, 1);
+
+  } else {
+
+    state.wishlist.push(id);
+
+  }
+
+
+  saveWishlist();
+
+  updateWishlistCount();
+
+  renderFeatured();
+
+  renderNewArrivals();
+
+  renderCatalogue();
+
+  renderWishlistDrawer();
+
+}
+
+
+/* ============================================================
+   WISHLIST COUNT
+============================================================ */
+
+function updateWishlistCount() {
+
+  if (!elements.wishlistCount) {
+    return;
+  }
+
+
+  elements.wishlistCount.textContent =
+    state.wishlist.length;
+
+}
+
+
+/* ============================================================
+   OPEN WISHLIST
+============================================================ */
+
+function openWishlist() {
+
+  if (!elements.wishlistDrawer) {
+    return;
+  }
+
+
+  renderWishlistDrawer();
+
+
+  elements.wishlistDrawer.classList.add("open");
+
+  elements.wishlistDrawer.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  elements.drawerBackdrop?.classList.add(
+    "open"
+  );
+
+
+  document.body.classList.add(
+    "no-scroll"
+  );
+
+}
+
+
+/* ============================================================
+   CLOSE WISHLIST
+============================================================ */
+
+function closeWishlist() {
+
+  elements.wishlistDrawer?.classList.remove(
+    "open"
+  );
+
+  elements.wishlistDrawer?.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  elements.drawerBackdrop?.classList.remove(
+    "open"
+  );
+
+  document.body.classList.remove(
+    "no-scroll"
+  );
+
+}
+
+
+/* ============================================================
+   RENDER WISHLIST
+============================================================ */
+
+function renderWishlistDrawer() {
+
+  if (!elements.wishlistContent) {
+    return;
+  }
+
+
+  const products =
+    state.wishlist
+      .map(id =>
+        state.products.find(
+          product =>
+            String(product.id) === String(id)
+        )
+      )
+      .filter(Boolean);
+
+
+  if (!products.length) {
+
+    elements.wishlistContent.innerHTML = `
+      <div class="empty-state">
+        <span>♡</span>
+        <h3>Your wishlist is empty</h3>
+        <p>
+          Tap the heart on jewellery you love.
+        </p>
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  elements.wishlistContent.innerHTML =
+    products
+      .map(product => {
+
+        return `
+          <div
+            class="wishlist-item"
+            style="
+              display:grid;
+              grid-template-columns:90px 1fr;
+              gap:15px;
+              padding:15px 0;
+              border-bottom:1px solid var(--border);
+            "
           >
 
-          <div>
+            <img
+              src="${escapeAttribute(product.image_url)}"
+              alt="${escapeAttribute(product.name)}"
+              style="
+                width:90px;
+                height:100px;
+                object-fit:cover;
+              "
+            >
 
-            <h4>
-              ${escapeHTML(
-                product.name
-              )}
-            </h4>
+            <div>
 
-            <p>
-              ${escapeHTML(
-                formatCategory(
-                  product.category
-                )
-              )}
-            </p>
+              <span class="product-category">
+                ${escapeHTML(product.category)}
+              </span>
+
+              <h3
+                style="
+                  margin:0 0 8px;
+                  font-family:var(--serif);
+                  font-size:23px;
+                "
+              >
+                ${escapeHTML(product.name)}
+              </h3>
+
+              <div
+                style="
+                  color:var(--gold-dark);
+                  font-size:11px;
+                  font-weight:700;
+                  margin-bottom:12px;
+                "
+              >
+                ${formatPrice(product.price)}
+              </div>
+
+              <button
+                type="button"
+                data-remove-wishlist="${escapeAttribute(product.id)}"
+                style="
+                  border:0;
+                  background:transparent;
+                  padding:0;
+                  color:var(--gold-dark);
+                  font-size:8px;
+                  font-weight:700;
+                  letter-spacing:.08em;
+                  text-transform:uppercase;
+                "
+              >
+                Remove
+              </button>
+
+            </div>
 
           </div>
-
-          <button
-            class="wishlist-remove"
-            type="button"
-          >
-            ×
-          </button>
-
         `;
 
+      })
+      .join("");
 
-        item
-          .querySelector(
-            ".wishlist-remove"
-          )
-          ?.addEventListener(
-            "click",
-            () =>
-              toggleWishlist(
-                product.id
-              )
+}
+
+
+/* ============================================================
+   WISHLIST REMOVE
+============================================================ */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    const removeButton =
+      event.target.closest(
+        "[data-remove-wishlist]"
+      );
+
+
+    if (!removeButton) {
+      return;
+    }
+
+
+    toggleWishlist(
+      removeButton.dataset.removeWishlist
+    );
+
+  }
+);
+
+
+/* ============================================================
+   SEARCH
+============================================================ */
+
+function openSearch() {
+
+  elements.searchPanel?.classList.add(
+    "open"
+  );
+
+
+  setTimeout(() => {
+
+    elements.globalSearch?.focus();
+
+  }, 250);
+
+}
+
+
+function closeSearch() {
+
+  elements.searchPanel?.classList.remove(
+    "open"
+  );
+
+}
+
+
+function handleSearch(event) {
+
+  state.searchTerm =
+    event.target.value.trim();
+
+  renderCatalogue();
+
+
+  /*
+    If the user searches from the header,
+    scroll to the catalogue.
+  */
+
+  if (state.searchTerm) {
+
+    const collection =
+      document.getElementById("collection");
+
+    if (
+      collection &&
+      window.scrollY < collection.offsetTop - 250
+    ) {
+
+      collection.scrollIntoView({
+        behavior: "smooth"
+      });
+
+    }
+
+  }
+
+}
+
+
+/* ============================================================
+   CATEGORY
+============================================================ */
+
+function setCategory(category) {
+
+  state.activeCategory =
+    category || "all";
+
+
+  document
+    .querySelectorAll(".filter-button")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        normalizeText(button.dataset.filter) ===
+        normalizeText(state.activeCategory)
+      );
+
+    });
+
+
+  renderCatalogue();
+
+}
+
+
+/* ============================================================
+   CLEAR
+============================================================ */
+
+function clearFilters() {
+
+  state.activeCategory =
+    "all";
+
+  state.searchTerm =
+    "";
+
+  state.sort =
+    "newest";
+
+
+  if (elements.globalSearch) {
+    elements.globalSearch.value = "";
+  }
+
+
+  if (elements.sortSelect) {
+    elements.sortSelect.value = "newest";
+  }
+
+
+  setCategory("all");
+
+}
+
+
+/* ============================================================
+   SORT
+============================================================ */
+
+function getSortFunction(sort) {
+
+  switch (sort) {
+
+    case "oldest":
+      return sortByOldest;
+
+    case "name":
+      return sortByName;
+
+    case "price-low":
+      return sortByPriceLow;
+
+    case "price-high":
+      return sortByPriceHigh;
+
+    case "newest":
+    default:
+      return sortByNewest;
+
+  }
+
+}
+
+
+function sortByNewest(a, b) {
+
+  return (
+    new Date(b.created_at || 0) -
+    new Date(a.created_at || 0)
+  );
+
+}
+
+
+function sortByOldest(a, b) {
+
+  return (
+    new Date(a.created_at || 0) -
+    new Date(b.created_at || 0)
+  );
+
+}
+
+
+function sortByName(a, b) {
+
+  return String(a.name)
+    .localeCompare(
+      String(b.name)
+    );
+
+}
+
+
+function sortByPriceLow(a, b) {
+
+  return (
+    Number(a.price || 0) -
+    Number(b.price || 0)
+  );
+
+}
+
+
+function sortByPriceHigh(a, b) {
+
+  return (
+    Number(b.price || 0) -
+    Number(a.price || 0)
+  );
+
+}
+
+
+/* ============================================================
+   MOBILE NAVIGATION
+============================================================ */
+
+function toggleMobileNavigation() {
+
+  elements.mainNav?.classList.toggle(
+    "open"
+  );
+
+}
+
+
+/* ============================================================
+   YEAR
+============================================================ */
+
+function setCurrentYear() {
+
+  if (elements.currentYear) {
+
+    elements.currentYear.textContent =
+      new Date().getFullYear();
+
+  }
+
+}
+
+
+/* ============================================================
+   REVEAL ANIMATIONS
+============================================================ */
+
+function initializeRevealAnimations() {
+
+  const revealElements =
+    document.querySelectorAll(
+      ".section-header, .category-card, .bridal, .about-photo, .about-content, .why-item, .contact-content, .contact-card"
+    );
+
+
+  revealElements.forEach(
+    element =>
+      element.setAttribute(
+        "data-reveal",
+        ""
+      )
+  );
+
+
+  if (
+    !("IntersectionObserver" in window)
+  ) {
+
+    revealElements.forEach(
+      element =>
+        element.classList.add(
+          "revealed"
+        )
+    );
+
+    return;
+
+  }
+
+
+  const observer =
+    new IntersectionObserver(
+      entries => {
+
+        entries.forEach(entry => {
+
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          entry.target.classList.add(
+            "revealed"
           );
 
+          observer.unobserve(
+            entry.target
+          );
 
-        container.appendChild(
-          item
-        );
+        });
 
+      },
+      {
+        threshold: .12
       }
     );
 
-  }
+
+  revealElements.forEach(
+    element =>
+      observer.observe(element)
+  );
+
+}
 
 
-  /* MODAL */
+/* ============================================================
+   PLACEHOLDER
+============================================================ */
 
-  function setupModal() {
+function createPlaceholderImage(name) {
 
-    const modal =
-      document.getElementById(
-        "productModal"
-      );
+  const safeName =
+    String(name || "Krishna Jewellers")
+      .replace(/[<>&"]/g, "");
+
+  const svg = `
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="800"
+      height="900"
+      viewBox="0 0 800 900"
+    >
+
+      <rect
+        width="800"
+        height="900"
+        fill="#f7dfe6"
+      />
+
+      <circle
+        cx="400"
+        cy="360"
+        r="210"
+        fill="#e9e2f4"
+      />
+
+      <text
+        x="400"
+        y="330"
+        text-anchor="middle"
+        font-family="Georgia"
+        font-size="70"
+        fill="#8d6728"
+      >
+        KJ
+      </text>
+
+      <text
+        x="400"
+        y="430"
+        text-anchor="middle"
+        font-family="Arial"
+        font-size="22"
+        letter-spacing="5"
+        fill="#6d626a"
+      >
+        KRISHNA JEWELLERS
+      </text>
+
+      <text
+        x="400"
+        y="485"
+        text-anchor="middle"
+        font-family="Arial"
+        font-size="17"
+        fill="#8d6728"
+      >
+        ${safeName}
+      </text>
+
+    </svg>
+  `;
 
 
-    document
-      .getElementById(
-        "productModalClose"
-      )
-      ?.addEventListener(
-        "click",
-        () =>
-          closeModal(modal)
-      );
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    svg
+  )}`;
+
+}
 
 
-    modal?.addEventListener(
-      "click",
-      event => {
+/* ============================================================
+   NO PRODUCTS
+============================================================ */
 
-        if (
-          event.target === modal
-        ) {
+function createNoProductsMessage(message) {
 
-          closeModal(modal);
+  return `
+    <div
+      style="
+        grid-column:1/-1;
+        padding:70px 20px;
+        text-align:center;
+        background:white;
+        border:1px solid var(--border);
+      "
+    >
 
-        }
+      <div
+        style="
+          color:var(--gold);
+          font-size:30px;
+          margin-bottom:8px;
+        "
+      >
+        ✦
+      </div>
 
-      }
-    );
+      <h3
+        style="
+          margin:0 0 8px;
+          font-family:var(--serif);
+          font-size:32px;
+          font-weight:500;
+        "
+      >
+        Jewellery collection
+      </h3>
 
-  }
+      <p
+        style="
+          margin:0;
+          color:var(--muted);
+          font-size:11px;
+        "
+      >
+        ${escapeHTML(message)}
+      </p>
+
+    </div>
+  `;
+
+}
 
 
-  function openProductModal(
-    productId
+/* ============================================================
+   PRICE
+============================================================ */
+
+function formatPrice(price) {
+
+  const value =
+    Number(price);
+
+
+  /*
+    A zero price is treated as
+    "Price on enquiry" so we don't
+    show ₹0 to customers.
+  */
+
+  if (
+    !Number.isFinite(value) ||
+    value <= 0
   ) {
+
+    return "Price on enquiry";
+
+  }
+
+
+  return new Intl.NumberFormat(
+    "en-IN",
+    {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
+    }
+  ).format(value);
+
+}
+
+
+/* ============================================================
+   TEXT HELPERS
+============================================================ */
+
+function normalizeText(value) {
+
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+
+}
+
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function escapeAttribute(value) {
+
+  return escapeHTML(value);
+
+}
+
+
+/* ============================================================
+   PUBLIC API
+============================================================ */
+
+window.KrishnaJewellers = {
+
+  refreshCatalogue: async function() {
+
+    await loadProducts();
+
+    renderEverything();
+
+  },
+
+  openProduct: function(productId) {
+
+    openProduct(productId);
+
+  },
+
+  sendWhatsAppEnquiry: function(productId) {
 
     const product =
       state.products.find(
         item =>
-          item.id === productId
+          String(item.id) ===
+          String(productId)
       );
 
 
-    if (!product) return;
-
-
-    state.currentProduct =
-      product;
-
-
-    const modal =
-      document.getElementById(
-        "productModal"
-      );
-
-
-    const image =
-      product.image_url ||
-      product.images?.[0]?.url ||
-      fallbackImage();
-
-
-    document.getElementById(
-      "productModalImage"
-    ).src = image;
-
-
-    document.getElementById(
-      "productModalImage"
-    ).alt = product.name;
-
-
-    document.getElementById(
-      "productModalCategory"
-    ).textContent =
-      formatCategory(
-        product.category
-      );
-
-
-    document.getElementById(
-      "productModalName"
-    ).textContent =
-      product.name;
-
-
-    document.getElementById(
-      "productModalDescription"
-    ).textContent =
-      product.description;
-
-
-    document.getElementById(
-      "productModalMaterial"
-    ).textContent =
-      product.material;
-
-
-    document.getElementById(
-      "productModalPrice"
-    ).textContent =
-      product.price > 0
-        ? formatCurrency(
-            product.price
-          )
-        : "Price on enquiry";
-
-
-    const button =
-      document.getElementById(
-        "productModalEnquire"
-      );
-
-
-    button.onclick =
-      () =>
-        sendWhatsAppEnquiry(
-          product
-        );
-
-
-    modal?.classList.add(
-      "open"
-    );
-
-
-    document.body.style.overflow =
-      "hidden";
-
-  }
-
-
-  function closeModal(
-    modal
-  ) {
-
-    modal?.classList.remove(
-      "open"
-    );
-
-    document.body.style.overflow =
-      "";
-
-  }
-
-
-  /* WHATSAPP */
-
-  function sendWhatsAppEnquiry(
-    product
-  ) {
-
-    const phone =
-      "919839902006";
+    if (!product) {
+      return;
+    }
 
 
     const message =
-      `Hello Krishna Jewellers,\n\n` +
-      `I am interested in ${product.name}.\n\n` +
-      `Category: ${formatCategory(
-        product.category
-      )}\n` +
-      `SKU: ${product.sku || "N/A"}\n\n` +
-      `Please share more details and current pricing.`;
+      `Hello Krishna Jewellers, I am interested in ${product.name}. Please share more details.`;
 
 
     window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(
+      `https://wa.me/${BUSINESS.whatsapp}?text=${encodeURIComponent(
         message
       )}`,
       "_blank",
-      "noopener,noreferrer"
+      "noopener"
     );
 
   }
 
-
-  /* DRAWER */
-
-  function openDrawer(
-    drawer
-  ) {
-
-    if (!drawer) return;
-
-
-    drawer.classList.add(
-      "open"
-    );
-
-
-    document.body.style.overflow =
-      "hidden";
-
-
-    let overlay =
-      document.querySelector(
-        ".drawer-overlay"
-      );
-
-
-    if (!overlay) {
-
-      overlay =
-        document.createElement(
-          "div"
-        );
-
-      overlay.className =
-        "drawer-overlay";
-
-
-      Object.assign(
-        overlay.style,
-        {
-          position: "fixed",
-          inset: "0",
-          zIndex: "2999",
-          background:
-            "rgba(25,18,27,.5)",
-          opacity: "0",
-          transition:
-            "opacity .35s ease"
-        }
-      );
-
-
-      document.body.appendChild(
-        overlay
-      );
-
-
-      overlay.addEventListener(
-        "click",
-        () =>
-          closeDrawer(drawer)
-      );
-
-    }
-
-
-    requestAnimationFrame(
-      () =>
-        overlay.style.opacity =
-          "1"
-    );
-
-  }
-
-
-  function closeDrawer(
-    drawer
-  ) {
-
-    drawer?.classList.remove(
-      "open"
-    );
-
-
-    const overlay =
-      document.querySelector(
-        ".drawer-overlay"
-      );
-
-
-    if (overlay) {
-
-      overlay.style.opacity =
-        "0";
-
-
-      setTimeout(
-        () =>
-          overlay.remove(),
-        350
-      );
-
-    }
-
-
-    document.body.style.overflow =
-      "";
-
-  }
-
-
-  /* CLEAR FILTERS */
-
-  function setupClearFilters() {
-
-    document
-      .getElementById(
-        "clearFiltersBtn"
-      )
-      ?.addEventListener(
-        "click",
-        () => {
-
-          state.activeCategory =
-            "all";
-
-          state.searchTerm =
-            "";
-
-          document.getElementById(
-            "searchInput"
-          ).value = "";
-
-
-          document
-            .querySelectorAll(
-              ".filter-button"
-            )
-            .forEach(
-              button =>
-                button.classList.toggle(
-                  "active",
-                  button.dataset.category ===
-                    "all"
-                )
-            );
-
-
-          applyFilters();
-
-        }
-      );
-
-  }
-
-
-  /* SCROLL ANIMATION */
-
-  function setupScrollAnimations() {
-
-    const elements =
-      document.querySelectorAll(
-        ".category-card, .section-heading, .occasion-card, .about-copy, .about-image, .trust-item"
-      );
-
-
-    elements.forEach(
-      element =>
-        element.dataset.reveal =
-          "true"
-    );
-
-
-    if (
-      !("IntersectionObserver" in window)
-    ) {
-
-      elements.forEach(
-        element =>
-          element.classList.add(
-            "revealed"
-          )
-      );
-
-      return;
-
-    }
-
-
-    const observer =
-      new IntersectionObserver(
-        entries => {
-
-          entries.forEach(
-            entry => {
-
-              if (
-                entry.isIntersecting
-              ) {
-
-                entry.target.classList.add(
-                  "revealed"
-                );
-
-
-                observer.unobserve(
-                  entry.target
-                );
-
-              }
-
-            }
-          );
-
-        },
-        {
-          threshold: .12
-        }
-      );
-
-
-    elements.forEach(
-      element =>
-        observer.observe(
-          element
-        )
-    );
-
-  }
-
-
-  /* HELPERS */
-
-  function formatCategory(
-    value
-  ) {
-
-    return String(
-      value || "other"
-    )
-      .replace(
-        /[-_]/g,
-        " "
-      )
-      .replace(
-        /\b\w/g,
-        letter =>
-          letter.toUpperCase()
-      );
-
-  }
-
-
-  function formatCurrency(
-    value
-  ) {
-
-    return new Intl.NumberFormat(
-      "en-IN",
-      {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0
-      }
-    ).format(
-      Number(value) || 0
-    );
-
-  }
-
-
-  function escapeHTML(
-    value
-  ) {
-
-    return String(
-      value ?? ""
-    )
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      )
-      .replace(
-        />/g,
-        "&gt;"
-      )
-      .replace(
-        /"/g,
-        "&quot;"
-      )
-      .replace(
-        /'/g,
-        "&#039;"
-      );
-
-  }
-
-
-  function escapeAttribute(
-    value
-  ) {
-
-    return escapeHTML(
-      value
-    );
-
-  }
-
-
-  function fallbackImage() {
-
-    return "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=900&q=85";
-
-  }
-
-
-  function setCurrentYear() {
-
-    const year =
-      document.getElementById(
-        "currentYear"
-      );
-
-
-    if (year) {
-
-      year.textContent =
-        new Date().getFullYear();
-
-    }
-
-  }
-
-
-  function showToast(
-    message
-  ) {
-
-    let toast =
-      document.querySelector(
-        ".kj-toast"
-      );
-
-
-    if (!toast) {
-
-      toast =
-        document.createElement(
-          "div"
-        );
-
-      toast.className =
-        "kj-toast";
-
-
-      Object.assign(
-        toast.style,
-        {
-          position: "fixed",
-          left: "50%",
-          bottom: "30px",
-          zIndex: "5000",
-          transform:
-            "translate(-50%,20px)",
-          opacity: "0",
-          padding:
-            "12px 20px",
-          borderRadius:
-            "999px",
-          background:
-            "#29202b",
-          color: "white",
-          fontSize: "12px",
-          boxShadow:
-            "0 15px 40px rgba(0,0,0,.2)",
-          transition:
-            "all .3s ease"
-        }
-      );
-
-
-      document.body.appendChild(
-        toast
-      );
-
-    }
-
-
-    toast.textContent =
-      message;
-
-
-    requestAnimationFrame(
-      () => {
-
-        toast.style.opacity =
-          "1";
-
-        toast.style.transform =
-          "translate(-50%,0)";
-
-      }
-    );
-
-
-    clearTimeout(
-      showToast.timer
-    );
-
-
-    showToast.timer =
-      setTimeout(
-        () => {
-
-          toast.style.opacity =
-            "0";
-
-          toast.style.transform =
-            "translate(-50%,20px)";
-
-        },
-        2200
-      );
-
-  }
-
-
-  window.KrishnaJewellers = {
-
-    refreshCatalogue:
-      loadProducts,
-
-    openProduct:
-      openProductModal,
-
-    sendWhatsAppEnquiry
-
-  };
-
-})();
+};
