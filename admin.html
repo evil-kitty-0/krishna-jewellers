@@ -2,212 +2,237 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <meta
     name="robots"
     content="noindex,nofollow"
   >
 
-  <title>Krishna Jewellers | Admin</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <title>
+    Krishna Jewellers — Admin
+  </title>
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   >
 
-  <link rel="stylesheet" href="admin.css">
+  <link
+    rel="stylesheet"
+    href="admin.css"
+  >
 </head>
+
 
 <body>
 
-  <!-- =========================================
+  <!-- ======================================================
        LOGIN SCREEN
-  ========================================== -->
-  <section class="auth-screen" id="loginScreen">
+  ======================================================= -->
 
-    <div class="auth-card">
+  <main
+    id="loginScreen"
+    class="login-screen"
+  >
 
-      <a href="index.html" class="admin-brand">
-        <span class="admin-brand-mark">KJ</span>
+    <div class="login-card">
 
-        <span>
-          <strong>KRISHNA</strong>
-          <small>JEWELLERS</small>
-        </span>
-      </a>
-
-      <div class="auth-heading">
-        <p class="eyebrow">PRIVATE AREA</p>
-
-        <h1>Admin Login</h1>
-
-        <p>
-          Sign in to manage your jewellery catalogue.
-        </p>
+      <div class="admin-monogram">
+        KJ
       </div>
 
-      <form id="loginForm" class="auth-form">
+      <span class="admin-eyebrow">
+        Krishna Jewellers
+      </span>
 
-        <div class="form-group">
+      <h1>
+        Admin Portal
+      </h1>
 
-          <label for="loginEmail">
-            Email
-          </label>
+      <p>
+        Manage your jewellery catalogue,
+        collections and availability.
+      </p>
 
-          <input
-            type="email"
-            id="loginEmail"
-            autocomplete="email"
-            placeholder="Admin email"
-            required
-          >
 
-        </div>
+      <form
+        id="loginForm"
+        class="login-form"
+      >
 
-        <div class="form-group">
+        <label
+          for="loginEmail"
+        >
+          Email
+        </label>
 
-          <label for="loginPassword">
-            Password
-          </label>
+        <input
+          id="loginEmail"
+          type="email"
+          autocomplete="email"
+          placeholder="Admin email"
+          required
+        >
 
-          <div class="password-field">
 
-            <input
-              type="password"
-              id="loginPassword"
-              autocomplete="current-password"
-              placeholder="Password"
-              required
-            >
+        <label
+          for="loginPassword"
+        >
+          Password
+        </label>
 
-            <button
-              type="button"
-              id="togglePassword"
-              aria-label="Show password"
-            >
-              Show
-            </button>
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Password"
+          required
+        >
 
-          </div>
-
-        </div>
 
         <button
           type="submit"
-          class="btn btn-primary btn-full"
+          class="admin-button admin-button-dark admin-button-full"
           id="loginButton"
         >
           Sign In
         </button>
 
-        <p
-          class="form-message"
-          id="loginMessage"
-          role="alert"
-        ></p>
-
       </form>
 
-      <a href="index.html" class="back-link">
-        ← Back to website
-      </a>
+
+      <p
+        id="loginMessage"
+        class="form-message"
+        aria-live="polite"
+      ></p>
 
     </div>
 
-  </section>
+  </main>
 
 
-  <!-- =========================================
-       ADMIN DASHBOARD
-  ========================================== -->
-  <div class="admin-app" id="adminApp" hidden>
+  <!-- ======================================================
+       ADMIN APP
+  ======================================================= -->
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
+  <div
+    id="adminApp"
+    class="admin-app"
+    hidden
+  >
 
-      <div class="sidebar-top">
 
-        <a href="index.html" class="admin-brand sidebar-brand">
+    <!-- ====================================================
+         SIDEBAR
+    ===================================================== -->
 
-          <span class="admin-brand-mark">KJ</span>
+    <aside
+      class="admin-sidebar"
+      id="adminSidebar"
+    >
+
+      <div class="sidebar-brand">
+
+        <div class="sidebar-monogram">
+          KJ
+        </div>
+
+        <div>
+
+          <strong>
+            KRISHNA
+          </strong>
 
           <span>
-            <strong>KRISHNA</strong>
-            <small>JEWELLERS</small>
+            JEWELLERS
           </span>
 
-        </a>
-
-        <button
-          type="button"
-          class="sidebar-close"
-          id="sidebarClose"
-          aria-label="Close menu"
-        >
-          ×
-        </button>
+        </div>
 
       </div>
 
 
-      <nav class="sidebar-nav">
+      <div class="sidebar-mode">
+
+        <span>
+          CATALOGUE
+        </span>
+
+        <strong
+          id="sidebarMetalLabel"
+        >
+          GOLD
+        </strong>
+
+      </div>
+
+
+      <nav
+        class="sidebar-nav"
+        aria-label="Admin navigation"
+      >
 
         <button
           type="button"
-          class="nav-item active"
-          data-view="products"
+          class="sidebar-nav-item active"
+          data-admin-view="dashboard"
         >
-          <span class="nav-icon">◇</span>
-          <span>Products</span>
+          <span>01</span>
+          Dashboard
         </button>
+
 
         <button
           type="button"
-          class="nav-item"
-          data-view="add-product"
+          class="sidebar-nav-item"
+          data-admin-view="products"
         >
-          <span class="nav-icon">+</span>
-          <span>Add Product</span>
+          <span>02</span>
+          Products
         </button>
 
-        <a
-          href="index.html"
-          class="nav-item"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        <button
+          type="button"
+          class="sidebar-nav-item"
+          data-admin-view="add-product"
         >
-          <span class="nav-icon">↗</span>
-          <span>View Website</span>
-        </a>
+          <span>03</span>
+          Add Product
+        </button>
 
       </nav>
 
 
       <div class="sidebar-bottom">
 
-        <div class="admin-user-card">
-
-          <span class="user-avatar">KJ</span>
-
-          <div>
-            <strong id="adminEmail">
-              Admin
-            </strong>
-
-            <small>
-              Administrator
-            </small>
-          </div>
-
-        </div>
+        <a
+          href="index.html"
+          target="_blank"
+          rel="noopener"
+        >
+          View Website →
+        </a>
 
         <button
           type="button"
-          class="logout-button"
           id="logoutButton"
         >
           Sign Out
@@ -218,285 +243,284 @@
     </aside>
 
 
-    <div
-      class="sidebar-overlay"
-      id="sidebarOverlay"
-    ></div>
+    <!-- ====================================================
+         MAIN
+    ===================================================== -->
 
-
-    <!-- MAIN CONTENT -->
     <main class="admin-main">
 
-      <!-- TOP BAR -->
-      <header class="admin-topbar">
 
-        <button
-          type="button"
-          class="mobile-sidebar-button"
-          id="sidebarOpen"
-          aria-label="Open admin menu"
-        >
-          ☰
-        </button>
+      <!-- ==================================================
+           TOP HEADER
+      =================================================== -->
 
-        <div>
-          <p class="eyebrow">KRISHNA JEWELLERS</p>
-          <h1 id="pageTitle">Products</h1>
+      <header class="admin-header">
+
+        <div class="admin-header-left">
+
+          <button
+            type="button"
+            id="mobileSidebarToggle"
+            class="mobile-sidebar-toggle"
+            aria-label="Open admin menu"
+            aria-expanded="false"
+          >
+            ☰
+          </button>
+
+          <div>
+
+            <span
+              class="admin-eyebrow"
+              id="adminPageEyebrow"
+            >
+              Dashboard
+            </span>
+
+            <h1
+              id="adminPageTitle"
+            >
+              Jewellery Catalogue
+            </h1>
+
+          </div>
+
         </div>
 
-        <button
-          type="button"
-          class="btn btn-primary"
-          id="topAddProductButton"
-        >
-          + Add Product
-        </button>
+
+        <div class="admin-header-actions">
+
+
+          <!-- ==============================================
+               METAL SWITCH
+          =============================================== -->
+
+          <div class="admin-metal-switch">
+
+            <span
+              class="admin-metal-label gold-admin-label"
+              id="goldAdminLabel"
+            >
+              GOLD
+            </span>
+
+
+            <button
+              type="button"
+              id="adminMetalToggle"
+              class="admin-metal-toggle"
+              aria-pressed="false"
+              aria-label="Switch to silver catalogue"
+            >
+
+              <span
+                class="admin-metal-toggle-track"
+              ></span>
+
+              <span
+                class="admin-metal-toggle-knob"
+              ></span>
+
+            </button>
+
+
+            <span
+              class="admin-metal-label silver-admin-label"
+              id="silverAdminLabel"
+            >
+              SILVER
+            </span>
+
+          </div>
+
+
+          <span
+            id="adminUserEmail"
+            class="admin-user-email"
+          ></span>
+
+
+          <button
+            type="button"
+            id="headerLogoutButton"
+            class="admin-button admin-button-outline"
+          >
+            Sign Out
+          </button>
+
+        </div>
 
       </header>
 
 
-      <!-- =========================================
-           PRODUCTS VIEW
-      ========================================== -->
+      <!-- ==================================================
+           DASHBOARD VIEW
+      =================================================== -->
+
       <section
+        id="dashboardView"
         class="admin-view active"
-        id="productsView"
-        data-view-panel="products"
       >
 
-        <!-- STATS -->
+        <div class="dashboard-intro">
+
+          <div>
+
+            <span class="admin-eyebrow">
+              Current Catalogue
+            </span>
+
+            <h2>
+              <span id="dashboardMetalName">
+                Gold
+              </span>
+              Jewellery
+            </h2>
+
+            <p>
+              Manage everything displayed on the
+              public jewellery website from here.
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="admin-button admin-button-dark"
+            data-admin-view="add-product"
+          >
+            + Add Jewellery
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             STATS
+        ================================================== -->
+
         <div class="stats-grid">
 
-          <div class="stat-card">
 
-            <span class="stat-label">
-              Total Products
+          <article class="stat-card">
+
+            <span>
+              TOTAL
             </span>
 
             <strong
-              class="stat-value"
               id="totalProducts"
             >
               0
             </strong>
 
-          </div>
+            <small>
+              Products
+            </small>
 
-          <div class="stat-card">
+          </article>
 
-            <span class="stat-label">
-              Published
+
+          <article class="stat-card">
+
+            <span>
+              PUBLISHED
             </span>
 
             <strong
-              class="stat-value"
               id="publishedProducts"
             >
               0
             </strong>
 
-          </div>
+            <small>
+              Visible online
+            </small>
 
-          <div class="stat-card">
+          </article>
 
-            <span class="stat-label">
-              Hidden
+
+          <article class="stat-card">
+
+            <span>
+              FEATURED
             </span>
 
             <strong
-              class="stat-value"
-              id="hiddenProducts"
+              id="featuredProducts"
             >
               0
             </strong>
 
-          </div>
+            <small>
+              Featured pieces
+            </small>
 
-          <div class="stat-card">
+          </article>
 
-            <span class="stat-label">
-              Categories
+
+          <article class="stat-card">
+
+            <span>
+              CATEGORIES
             </span>
 
             <strong
-              class="stat-value"
               id="categoryCount"
             >
               0
             </strong>
 
-          </div>
+            <small>
+              Active categories
+            </small>
+
+          </article>
 
         </div>
 
 
-        <!-- PRODUCT LIST CARD -->
-        <div class="panel">
+        <!-- =================================================
+             DASHBOARD PRODUCTS
+        ================================================== -->
 
-          <div class="panel-header">
+        <div class="admin-panel">
+
+          <div class="admin-panel-header">
 
             <div>
-              <h2>Catalogue</h2>
 
-              <p>
-                Manage the jewellery displayed on your website.
-              </p>
+              <span class="admin-eyebrow">
+                Recent Jewellery
+              </span>
+
+              <h2>
+                Latest Products
+              </h2>
+
             </div>
+
 
             <button
               type="button"
-              class="btn btn-primary desktop-add-button"
-              id="panelAddProductButton"
+              class="admin-button admin-button-outline"
+              data-admin-view="products"
             >
-              + Add Product
+              View All
             </button>
-
-          </div>
-
-
-          <!-- FILTERS -->
-          <div class="catalogue-filters">
-
-            <div class="search-field">
-
-              <span>⌕</span>
-
-              <input
-                type="search"
-                id="adminSearch"
-                placeholder="Search products..."
-                autocomplete="off"
-              >
-
-            </div>
-
-
-            <select id="adminCategoryFilter">
-
-              <option value="all">
-                All categories
-              </option>
-
-              <option value="rings">
-                Rings
-              </option>
-
-              <option value="necklaces">
-                Necklaces
-              </option>
-
-              <option value="earrings">
-                Earrings
-              </option>
-
-              <option value="bangles">
-                Bangles
-              </option>
-
-              <option value="bracelets">
-                Bracelets
-              </option>
-
-              <option value="chains">
-                Chains
-              </option>
-
-              <option value="other">
-                Other
-              </option>
-
-            </select>
-
-
-            <select id="adminStatusFilter">
-
-              <option value="all">
-                All status
-              </option>
-
-              <option value="published">
-                Published
-              </option>
-
-              <option value="hidden">
-                Hidden
-              </option>
-
-            </select>
-
-          </div>
-
-
-          <!-- PRODUCT TABLE -->
-          <div class="table-wrapper">
-
-            <table class="product-table">
-
-              <thead>
-
-                <tr>
-
-                  <th>Product</th>
-
-                  <th>Category</th>
-
-                  <th>Price</th>
-
-                  <th>Status</th>
-
-                  <th>Updated</th>
-
-                  <th>Actions</th>
-
-                </tr>
-
-              </thead>
-
-              <tbody id="productTableBody">
-
-                <tr>
-
-                  <td
-                    colspan="6"
-                    class="table-loading"
-                  >
-                    <div class="loading-spinner"></div>
-                    Loading products...
-                  </td>
-
-                </tr>
-
-              </tbody>
-
-            </table>
 
           </div>
 
 
           <div
-            class="empty-admin-state"
-            id="adminEmptyState"
-            hidden
+            id="dashboardProducts"
+            class="admin-product-table-wrap"
           >
 
-            <div class="empty-admin-icon">
-              ◇
+            <div class="admin-loading">
+              Loading products...
             </div>
-
-            <h3>No products found</h3>
-
-            <p>
-              Add your first jewellery product to start building
-              your online catalogue.
-            </p>
-
-            <button
-              type="button"
-              class="btn btn-primary"
-              id="emptyAddProductButton"
-            >
-              + Add Product
-            </button>
 
           </div>
 
@@ -505,45 +529,214 @@
       </section>
 
 
-      <!-- =========================================
-           ADD / EDIT PRODUCT VIEW
-      ========================================== -->
+      <!-- ==================================================
+           PRODUCTS VIEW
+      =================================================== -->
+
       <section
+        id="productsView"
         class="admin-view"
-        id="addProductView"
-        data-view-panel="add-product"
+        hidden
       >
 
-        <div class="editor-header">
+        <div class="view-heading">
 
           <div>
 
-            <button
-              type="button"
-              class="back-button"
-              id="backToProducts"
-            >
-              ← Back to Products
-            </button>
+            <span class="admin-eyebrow">
+              Catalogue Manager
+            </span>
 
-            <p class="eyebrow">
-              CATALOGUE MANAGEMENT
-            </p>
-
-            <h2 id="editorTitle">
-              Add Product
+            <h2>
+              Manage Jewellery
             </h2>
 
             <p>
-              Add product information and upload photographs.
+              Add, edit, publish or remove
+              jewellery from your website.
             </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="admin-button admin-button-dark"
+            data-admin-view="add-product"
+          >
+            + Add Product
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             PRODUCT FILTERS
+        ================================================== -->
+
+        <div class="product-toolbar">
+
+          <div class="product-metal-filter">
+
+            <button
+              type="button"
+              class="metal-filter-button active"
+              data-product-metal="all"
+            >
+              All
+            </button>
+
+            <button
+              type="button"
+              class="metal-filter-button"
+              data-product-metal="gold"
+            >
+              Gold
+            </button>
+
+            <button
+              type="button"
+              class="metal-filter-button"
+              data-product-metal="silver"
+            >
+              Silver
+            </button>
+
+          </div>
+
+
+          <div class="product-search">
+
+            <label
+              for="productSearch"
+              class="sr-only"
+            >
+              Search products
+            </label>
+
+            <input
+              id="productSearch"
+              type="search"
+              placeholder="Search jewellery..."
+            >
+
+          </div>
+
+
+          <select
+            id="productCategoryFilter"
+            aria-label="Filter by category"
+          >
+
+            <option value="all">
+              All Categories
+            </option>
+
+          </select>
+
+
+          <select
+            id="productStatusFilter"
+            aria-label="Filter by status"
+          >
+
+            <option value="all">
+              All Status
+            </option>
+
+            <option value="published">
+              Published
+            </option>
+
+            <option value="hidden">
+              Hidden
+            </option>
+
+            <option value="featured">
+              Featured
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             PRODUCTS TABLE
+        ================================================== -->
+
+        <div class="admin-panel">
+
+          <div
+            id="productsTable"
+            class="admin-product-table-wrap"
+          >
+
+            <div class="admin-loading">
+              Loading products...
+            </div>
 
           </div>
 
         </div>
 
+      </section>
 
-        <form id="productForm" class="product-editor">
+
+      <!-- ==================================================
+           ADD / EDIT PRODUCT VIEW
+      =================================================== -->
+
+      <section
+        id="addProductView"
+        class="admin-view"
+        hidden
+      >
+
+        <div class="view-heading">
+
+          <div>
+
+            <span
+              class="admin-eyebrow"
+              id="productFormEyebrow"
+            >
+              New Jewellery
+            </span>
+
+            <h2
+              id="productFormTitle"
+            >
+              Add Product
+            </h2>
+
+            <p>
+              Create a jewellery catalogue entry
+              for the selected metal.
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="admin-button admin-button-outline"
+            data-admin-view="products"
+          >
+            ← Back to Products
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             PRODUCT FORM
+        ================================================== -->
+
+        <form
+          id="productForm"
+          class="product-form"
+        >
 
           <input
             type="hidden"
@@ -551,17 +744,28 @@
           >
 
 
-          <!-- BASIC INFORMATION -->
-          <div class="panel">
+          <!-- ===============================================
+               BASIC INFORMATION
+          ================================================ -->
 
-            <div class="panel-header compact">
+          <div class="form-section">
+
+            <div class="form-section-heading">
+
+              <span>
+                01
+              </span>
 
               <div>
-                <h3>Product Information</h3>
+
+                <h3>
+                  Basic Information
+                </h3>
 
                 <p>
-                  Enter the details customers will see.
+                  Identify the jewellery piece.
                 </p>
+
               </div>
 
             </div>
@@ -569,64 +773,44 @@
 
             <div class="form-grid">
 
-              <div class="form-group full-width">
 
-                <label for="productName">
+              <div class="form-field form-field-wide">
+
+                <label
+                  for="productName"
+                >
                   Product Name *
                 </label>
 
                 <input
-                  type="text"
                   id="productName"
-                  placeholder="Example: Classic Gold Ring"
+                  type="text"
+                  placeholder="Example: Elegant Floral Ring"
                   required
-                  maxlength="150"
                 >
 
               </div>
 
 
-              <div class="form-group">
+              <div class="form-field">
 
-                <label for="productCategory">
-                  Category *
+                <label
+                  for="productMetal"
+                >
+                  Metal *
                 </label>
 
                 <select
-                  id="productCategory"
+                  id="productMetal"
                   required
                 >
 
-                  <option value="">
-                    Select category
+                  <option value="gold">
+                    Gold
                   </option>
 
-                  <option value="rings">
-                    Rings
-                  </option>
-
-                  <option value="necklaces">
-                    Necklaces
-                  </option>
-
-                  <option value="earrings">
-                    Earrings
-                  </option>
-
-                  <option value="bangles">
-                    Bangles
-                  </option>
-
-                  <option value="bracelets">
-                    Bracelets
-                  </option>
-
-                  <option value="chains">
-                    Chains
-                  </option>
-
-                  <option value="other">
-                    Other
+                  <option value="silver">
+                    Silver
                   </option>
 
                 </select>
@@ -634,77 +818,88 @@
               </div>
 
 
-              <div class="form-group">
+              <div class="form-field">
 
-                <label for="productPrice">
-                  Price (₹)
+                <label
+                  for="productCategory"
+                >
+                  Category *
+                </label>
+
+                <select
+                  id="productCategory"
+                  required
+                ></select>
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label
+                  for="productPrice"
+                >
+                  Price
                 </label>
 
                 <input
-                  type="number"
                   id="productPrice"
-                  placeholder="Leave 0 for enquiry"
+                  type="number"
                   min="0"
                   step="1"
-                  inputmode="numeric"
-                >
-
-                <small>
-                  Use 0 if you want customers to enquire for the price.
-                </small>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label for="productMaterial">
-                  Material
-                </label>
-
-                <input
-                  type="text"
-                  id="productMaterial"
-                  placeholder="Example: 22K Gold"
-                  maxlength="100"
+                  placeholder="0 = Price on enquiry"
                 >
 
               </div>
 
 
-              <div class="form-group">
+              <div class="form-field">
 
-                <label for="productSku">
+                <label
+                  for="productSku"
+                >
                   SKU / Code
                 </label>
 
                 <input
-                  type="text"
                   id="productSku"
-                  placeholder="Optional product code"
-                  maxlength="100"
+                  type="text"
+                  placeholder="Example: KJ-GR-001"
                 >
 
               </div>
 
 
-              <div class="form-group full-width">
+              <div class="form-field form-field-wide">
 
-                <label for="productDescription">
-                  Description *
+                <label
+                  for="productMaterial"
+                >
+                  Material / Details
+                </label>
+
+                <input
+                  id="productMaterial"
+                  type="text"
+                  placeholder="Example: 22K Gold"
+                >
+
+              </div>
+
+
+              <div class="form-field form-field-wide">
+
+                <label
+                  for="productDescription"
+                >
+                  Description
                 </label>
 
                 <textarea
                   id="productDescription"
-                  rows="6"
+                  rows="5"
                   placeholder="Describe the jewellery piece..."
-                  maxlength="3000"
-                  required
                 ></textarea>
-
-                <small>
-                  <span id="descriptionCount">0</span>/3000 characters
-                </small>
 
               </div>
 
@@ -713,18 +908,26 @@
           </div>
 
 
-          <!-- PHOTOS -->
-          <div class="panel">
+          <!-- ===============================================
+               IMAGES
+          ================================================ -->
 
-            <div class="panel-header compact">
+          <div class="form-section">
+
+            <div class="form-section-heading">
+
+              <span>
+                02
+              </span>
 
               <div>
 
-                <h3>Product Photos</h3>
+                <h3>
+                  Product Images
+                </h3>
 
                 <p>
-                  Upload JPG, PNG or WebP images.
-                  Maximum 6 MB per image.
+                  Upload clear photos of your jewellery.
                 </p>
 
               </div>
@@ -732,70 +935,68 @@
             </div>
 
 
-            <div
-              class="upload-zone"
-              id="uploadZone"
-            >
+            <div class="image-upload-area">
+
+              <label
+                for="productImages"
+                class="image-upload-box"
+              >
+
+                <span class="image-upload-icon">
+                  +
+                </span>
+
+                <strong>
+                  Choose Images
+                </strong>
+
+                <small>
+                  JPG, PNG or WebP • Maximum 6MB each
+                </small>
+
+              </label>
+
 
               <input
-                type="file"
                 id="productImages"
+                type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
                 hidden
               >
 
-              <div class="upload-icon">
-                ↑
-              </div>
 
-              <h4>
-                Upload product photos
-              </h4>
-
-              <p>
-                Drag and drop images here or choose files.
-              </p>
-
-              <button
-                type="button"
-                class="btn btn-secondary"
-                id="chooseImagesButton"
-              >
-                Choose Images
-              </button>
-
-              <small>
-                JPG, PNG or WebP · Maximum 6 MB each
-              </small>
+              <div
+                id="imagePreview"
+                class="image-preview"
+              ></div>
 
             </div>
-
-
-            <div
-              class="image-preview-grid"
-              id="imagePreviewGrid"
-            ></div>
-
-            <p
-              class="upload-message"
-              id="uploadMessage"
-            ></p>
 
           </div>
 
 
-          <!-- PUBLISH SETTINGS -->
-          <div class="panel">
+          <!-- ===============================================
+               PUBLISH SETTINGS
+          ================================================ -->
 
-            <div class="panel-header compact">
+          <div class="form-section">
+
+            <div class="form-section-heading">
+
+              <span>
+                03
+              </span>
 
               <div>
 
-                <h3>Website Settings</h3>
+                <h3>
+                  Visibility
+                </h3>
 
                 <p>
-                  Choose how this product appears on your website.
+                  Control how this product appears
+                  on the public website.
                 </p>
 
               </div>
@@ -803,21 +1004,12 @@
             </div>
 
 
-            <div class="settings-grid">
+            <div class="visibility-options">
 
-              <label class="toggle-setting">
 
-                <span>
-
-                  <strong>
-                    Publish product
-                  </strong>
-
-                  <small>
-                    Published products appear on the public website.
-                  </small>
-
-                </span>
+              <label
+                class="switch-option"
+              >
 
                 <input
                   type="checkbox"
@@ -825,31 +1017,49 @@
                   checked
                 >
 
-                <span class="toggle-switch"></span>
-
-              </label>
-
-
-              <label class="toggle-setting">
+                <span
+                  class="switch-ui"
+                ></span>
 
                 <span>
 
                   <strong>
-                    Featured product
+                    Publish Product
                   </strong>
 
                   <small>
-                    Featured products appear first in the catalogue.
+                    Display this jewellery on the website.
                   </small>
 
                 </span>
+
+              </label>
+
+
+              <label
+                class="switch-option"
+              >
 
                 <input
                   type="checkbox"
                   id="productFeatured"
                 >
 
-                <span class="toggle-switch"></span>
+                <span
+                  class="switch-ui"
+                ></span>
+
+                <span>
+
+                  <strong>
+                    Featured Product
+                  </strong>
+
+                  <small>
+                    Show this piece in the featured collection.
+                  </small>
+
+                </span>
 
               </label>
 
@@ -858,20 +1068,24 @@
           </div>
 
 
-          <!-- FORM ACTIONS -->
-          <div class="editor-actions">
+          <!-- ===============================================
+               FORM ACTIONS
+          ================================================ -->
+
+          <div class="form-actions">
 
             <button
               type="button"
-              class="btn btn-secondary"
-              id="cancelEditorButton"
+              class="admin-button admin-button-outline"
+              id="cancelProductButton"
             >
               Cancel
             </button>
 
+
             <button
               type="submit"
-              class="btn btn-primary"
+              class="admin-button admin-button-dark"
               id="saveProductButton"
             >
               Save Product
@@ -881,66 +1095,88 @@
 
 
           <p
-            class="form-message editor-message"
             id="productFormMessage"
-            role="alert"
+            class="form-message"
+            aria-live="polite"
           ></p>
 
         </form>
 
       </section>
 
+
     </main>
 
   </div>
 
 
-  <!-- =========================================
-       CONFIRMATION MODAL
-  ========================================== -->
+  <!-- ======================================================
+       DELETE CONFIRMATION
+  ======================================================= -->
+
   <div
-    class="admin-modal"
     id="confirmModal"
+    class="admin-modal"
+    hidden
     aria-hidden="true"
   >
 
-    <div class="admin-modal-backdrop"></div>
+    <div
+      class="admin-modal-backdrop"
+      data-close-confirm
+    ></div>
+
 
     <div
       class="admin-modal-card"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="confirmTitle"
+      aria-labelledby="confirmModalTitle"
     >
 
-      <div class="admin-modal-icon danger">
-        !
-      </div>
+      <button
+        type="button"
+        class="admin-modal-close"
+        data-close-confirm
+        aria-label="Close"
+      >
+        ×
+      </button>
 
-      <h2 id="confirmTitle">
-        Delete product?
+
+      <span class="admin-eyebrow">
+        Please Confirm
+      </span>
+
+      <h2
+        id="confirmModalTitle"
+      >
+        Delete Product?
       </h2>
 
-      <p id="confirmMessage">
-        This action cannot be undone.
+      <p
+        id="confirmModalText"
+      >
+        This product will be removed from the catalogue.
       </p>
+
 
       <div class="admin-modal-actions">
 
         <button
           type="button"
-          class="btn btn-secondary"
-          id="confirmCancel"
+          class="admin-button admin-button-outline"
+          data-close-confirm
         >
           Cancel
         </button>
 
         <button
           type="button"
-          class="btn btn-danger"
-          id="confirmDelete"
+          id="confirmDeleteButton"
+          class="admin-button admin-button-danger"
         >
-          Delete
+          Delete Product
         </button>
 
       </div>
@@ -950,23 +1186,37 @@
   </div>
 
 
-  <!-- =========================================
-       ADMIN TOAST
-  ========================================== -->
+  <!-- ======================================================
+       TOAST
+  ======================================================= -->
+
   <div
-    class="admin-toast"
     id="adminToast"
+    class="admin-toast"
     role="status"
     aria-live="polite"
-  ></div>
+  >
+    <span
+      id="adminToastMessage"
+    ></span>
+  </div>
 
 
-  <!-- SUPABASE -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ======================================================
+       SCRIPTS
+  ======================================================= -->
 
-  <script src="supabase-config.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
 
-  <script src="admin.js"></script>
+  <script
+    src="supabase-config.js"
+  ></script>
+
+  <script
+    src="admin.js"
+  ></script>
 
 </body>
 </html>
