@@ -1,12 +1,5 @@
 "use strict";
 
-/*
- * ============================================================
- * KRISHNA JEWELLERS — ADMIN PANEL
- * Gold + Silver Product Management
- * ============================================================
- */
-
 (function () {
   const CONFIG = {
     storageBucket: "jewellery",
@@ -15,28 +8,28 @@
     defaultMetal: "gold"
   };
 
-  const CATEGORY_SETS = {
+  const CATEGORIES = {
     gold: [
-      { value: "ladies-rings", label: "Ladies Rings" },
-      { value: "gents-rings", label: "Gents Rings" },
-      { value: "necklaces", label: "Necklaces" },
-      { value: "earrings", label: "Earrings" },
-      { value: "ladies-chains", label: "Ladies Chains" },
-      { value: "gents-chains", label: "Gents Chains" },
-      { value: "single-locket", label: "Single Locket" },
-      { value: "double-locket", label: "Double Locket" },
-      { value: "other", label: "Other" }
+      ["ladies-rings", "Ladies Rings"],
+      ["gents-rings", "Gents Rings"],
+      ["necklaces", "Necklaces"],
+      ["earrings", "Earrings"],
+      ["ladies-chains", "Ladies Chains"],
+      ["gents-chains", "Gents Chains"],
+      ["single-locket", "Single Locket"],
+      ["double-locket", "Double Locket"],
+      ["other", "Other"]
     ],
 
     silver: [
-      { value: "kids-payal", label: "Kids Payal" },
-      { value: "adult-payal", label: "Adult Payal" },
-      { value: "lockets", label: "Lockets" },
-      { value: "male-bracelets", label: "Male Bracelets" },
-      { value: "female-bracelets", label: "Female Bracelets" },
-      { value: "male-chains", label: "Male Chains" },
-      { value: "female-chains", label: "Female Chains" },
-      { value: "other", label: "Other" }
+      ["kids-payal", "Kids Payal"],
+      ["adult-payal", "Adult Payal"],
+      ["lockets", "Lockets"],
+      ["male-bracelets", "Male Bracelets"],
+      ["female-bracelets", "Female Bracelets"],
+      ["male-chains", "Male Chains"],
+      ["female-chains", "Female Chains"],
+      ["other", "Other"]
     ]
   };
 
@@ -45,7 +38,7 @@
     session: null,
     products: [],
     currentView: "dashboard",
-    metalMode: CONFIG.defaultMetal,
+    metalMode: "gold",
     productMetalFilter: "all",
     productSearch: "",
     productCategoryFilter: "all",
@@ -55,17 +48,18 @@
     selectedFiles: [],
     existingImages: [],
     isSaving: false,
-    toastTimer: null
+    toastTimer: null,
+    initialized: false
   };
 
-  const $ = (selector, parent = document) => parent.querySelector(selector);
+  const $ = (selector, parent = document) =>
+    parent.querySelector(selector);
 
   const $$ = (selector, parent = document) =>
     Array.from(parent.querySelectorAll(selector));
 
-  function getElement(id) {
-    return document.getElementById(id);
-  }
+  const byId = (id) =>
+    document.getElementById(id);
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -77,100 +71,87 @@
   }
 
   function normalizeMetal(value) {
-    const metal = String(value || "").trim().toLowerCase();
-
-    return metal === "silver" ? "silver" : "gold";
+    return String(value || "").toLowerCase() === "silver"
+      ? "silver"
+      : "gold";
   }
 
-  function normalizeCategory(category, metal) {
-    const value = String(category || "")
+  function metalLabel(metal) {
+    return normalizeMetal(metal) === "silver"
+      ? "Silver"
+      : "Gold";
+  }
+
+  function categoryList(metal) {
+    return CATEGORIES[normalizeMetal(metal)];
+  }
+
+  function normalizeCategory(value, metal) {
+    const raw = String(value || "")
       .trim()
       .toLowerCase()
       .replace(/_/g, "-")
       .replace(/\s+/g, "-");
 
-    const normalizedMetal = normalizeMetal(metal);
+    const currentMetal = normalizeMetal(metal);
 
-    if (normalizedMetal === "gold") {
+    if (currentMetal === "gold") {
       const aliases = {
         ring: "ladies-rings",
         rings: "ladies-rings",
         "ladies-ring": "ladies-rings",
-        "ladies-rings": "ladies-rings",
         "gents-ring": "gents-rings",
-        "gents-rings": "gents-rings",
-
         necklace: "necklaces",
-        necklaces: "necklaces",
-
         earring: "earrings",
         earrings: "earrings",
-
         chain: "gents-chains",
         chains: "gents-chains",
         "ladies-chain": "ladies-chains",
-        "ladies-chains": "ladies-chains",
         "gents-chain": "gents-chains",
-        "gents-chains": "gents-chains",
-        "male-chain": "gents-chains",
-        "male-chains": "gents-chains",
-        "female-chain": "ladies-chains",
-        "female-chains": "ladies-chains",
-
         locket: "single-locket",
         lockets: "single-locket",
-        "single-locket": "single-locket",
-        "double-locket": "double-locket",
-
         bangle: "other",
         bangles: "other",
         bracelet: "other",
-        bracelets: "other",
-        other: "other"
+        bracelets: "other"
       };
 
-      return aliases[value] || "other";
+      return aliases[raw] || (
+        categoryList("gold").some(([value]) => value === raw)
+          ? raw
+          : "other"
+      );
     }
 
     const aliases = {
       payal: "adult-payal",
-      "kids-payal": "kids-payal",
       "kid-payal": "kids-payal",
-      "adult-payal": "adult-payal",
-
       locket: "lockets",
-      lockets: "lockets",
-
       bracelet: "male-bracelets",
       bracelets: "male-bracelets",
       "male-bracelet": "male-bracelets",
-      "male-bracelets": "male-bracelets",
       "female-bracelet": "female-bracelets",
-      "female-bracelets": "female-bracelets",
-
       chain: "male-chains",
       chains: "male-chains",
       "male-chain": "male-chains",
-      "male-chains": "male-chains",
-      "female-chain": "female-chains",
-      "female-chains": "female-chains",
-
-      other: "other"
+      "female-chain": "female-chains"
     };
 
-    return aliases[value] || "other";
+    return aliases[raw] || (
+      categoryList("silver").some(([value]) => value === raw)
+        ? raw
+        : "other"
+    );
   }
 
-  function formatCategory(category) {
-    const allCategories = [
-      ...CATEGORY_SETS.gold,
-      ...CATEGORY_SETS.silver
-    ];
+  function categoryLabel(category) {
+    for (const metal of ["gold", "silver"]) {
+      const found = categoryList(metal)
+        .find(([value]) => value === category);
 
-    const found = allCategories.find((item) => item.value === category);
-
-    if (found) {
-      return found.label;
+      if (found) {
+        return found[1];
+      }
     }
 
     return String(category || "Other")
@@ -178,18 +159,57 @@
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
-  function formatMetal(metal) {
-    return normalizeMetal(metal) === "silver" ? "Silver" : "Gold";
+  function normalizeProduct(product) {
+    const metal = normalizeMetal(product?.metal);
+
+    let images = [];
+
+    if (Array.isArray(product?.images)) {
+      images = product.images
+        .map((image) => {
+          if (typeof image === "string") {
+            return image;
+          }
+
+          if (image && typeof image === "object") {
+            return image.url || "";
+          }
+
+          return "";
+        })
+        .filter(Boolean);
+    }
+
+    const imageUrl = String(product?.image_url || "");
+
+    if (imageUrl && !images.includes(imageUrl)) {
+      images.unshift(imageUrl);
+    }
+
+    return {
+      ...product,
+      metal,
+      category: normalizeCategory(product?.category, metal),
+      name: String(product?.name || "Unnamed Product"),
+      price: product?.price ?? null,
+      sku: String(product?.sku || ""),
+      material: String(product?.material || ""),
+      description: String(product?.description || ""),
+      image_url: imageUrl,
+      images,
+      is_published: Boolean(product?.is_published),
+      featured: Boolean(product?.featured)
+    };
   }
 
-  function formatPrice(price) {
-    const numericPrice = Number(price);
+  function priceLabel(price) {
+    const number = Number(price);
 
-    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+    if (!Number.isFinite(number) || number <= 0) {
       return "Price on enquiry";
     }
 
-    return `₹${numericPrice.toLocaleString("en-IN")}`;
+    return `₹${number.toLocaleString("en-IN")}`;
   }
 
   function formatDate(value) {
@@ -210,65 +230,31 @@
     });
   }
 
-  function getCategorySet(metal = state.metalMode) {
-    return CATEGORY_SETS[normalizeMetal(metal)];
-  }
-
-  function getCategoryLabel(metal, category) {
-    const categories = getCategorySet(metal);
-    const found = categories.find((item) => item.value === category);
-
-    return found ? found.label : formatCategory(category);
-  }
-
-  function normalizeProduct(product) {
-    const metal = normalizeMetal(product?.metal);
-
-    return {
-      ...product,
-      metal,
-      category: normalizeCategory(product?.category, metal),
-      name: String(product?.name || "Unnamed Product"),
-      description: String(product?.description || ""),
-      material: String(product?.material || ""),
-      sku: String(product?.sku || ""),
-      image_url: String(product?.image_url || ""),
-      images: Array.isArray(product?.images)
-        ? product.images.filter(Boolean)
-        : [],
-      is_published: Boolean(product?.is_published),
-      featured: Boolean(product?.featured)
-    };
-  }
-
   /* ==========================================================
      SUPABASE
-     ========================================================== */
+  ========================================================== */
 
-  function getSupabaseConfig() {
-    const config = window.KRISHNA_SUPABASE;
-
-    if (!config || !config.url || !config.key) {
-      throw new Error(
-        "Supabase configuration is missing. Please check supabase-config.js."
-      );
-    }
-
-    return config;
-  }
-
-  function createSupabaseClient() {
+  function createSupabase() {
     if (state.supabase) {
       return state.supabase;
     }
 
-    if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    if (
+      !window.supabase ||
+      typeof window.supabase.createClient !== "function"
+    ) {
       throw new Error(
-        "Supabase library could not be loaded. Please check the internet connection and admin.html."
+        "Supabase library could not load. Please refresh the page."
       );
     }
 
-    const config = getSupabaseConfig();
+    const config = window.KRISHNA_SUPABASE;
+
+    if (!config?.url || !config?.key) {
+      throw new Error(
+        "Supabase configuration is missing. Check supabase-config.js."
+      );
+    }
 
     state.supabase = window.supabase.createClient(
       config.url,
@@ -286,121 +272,139 @@
   }
 
   /* ==========================================================
-     UI HELPERS
-     ========================================================== */
+     UI
+  ========================================================== */
 
   function showLoginScreen() {
-    const loginScreen = getElement("loginScreen");
-    const adminApp = getElement("adminApp");
+    const login = byId("loginScreen");
+    const app = byId("adminApp");
 
-    if (loginScreen) {
-      loginScreen.style.display = "flex";
+    if (login) {
+      login.style.display = "flex";
     }
 
-    if (adminApp) {
-      adminApp.classList.add("is-hidden");
-      adminApp.style.display = "none";
+    if (app) {
+      app.hidden = true;
+      app.classList.add("is-hidden");
+      app.style.display = "none";
     }
   }
 
   function showAdminApp() {
-    const loginScreen = getElement("loginScreen");
-    const adminApp = getElement("adminApp");
+    const login = byId("loginScreen");
+    const app = byId("adminApp");
 
-    if (loginScreen) {
-      loginScreen.style.display = "none";
+    if (login) {
+      login.style.display = "none";
     }
 
-    if (adminApp) {
-      adminApp.classList.remove("is-hidden");
-      adminApp.style.display = "";
+    if (app) {
+      /*
+       * IMPORTANT:
+       * admin.html uses the native hidden attribute.
+       * Removing only a CSS class is not enough.
+       */
+      app.hidden = false;
+      app.removeAttribute("hidden");
+      app.classList.remove("is-hidden");
+      app.style.display = "grid";
     }
   }
 
-  function setLoginMessage(message, type = "info") {
-    const element = getElement("loginMessage");
+  function setLoginMessage(message, type = "") {
+    const element = byId("loginMessage");
 
     if (!element) {
       return;
     }
 
     element.textContent = message || "";
-    element.className = `form-message ${type}`;
+    element.className =
+      `form-message${type ? ` ${type}` : ""}`;
   }
 
-  function setFormMessage(message, type = "info") {
-    const element = getElement("productFormMessage");
+  function setFormMessage(message, type = "") {
+    const element = byId("productFormMessage");
 
     if (!element) {
       return;
     }
 
     element.textContent = message || "";
-    element.className = `form-message ${type}`;
-  }
-
-  function clearFormMessage() {
-    setFormMessage("");
+    element.className =
+      `form-message${type ? ` ${type}` : ""}`;
   }
 
   function showToast(message, type = "success") {
-    const toast = getElement("adminToast");
-    const toastMessage = getElement("adminToastMessage");
+    const toast = byId("adminToast");
+    const text = byId("adminToastMessage");
 
-    if (!toast || !toastMessage) {
+    if (!toast || !text) {
       return;
     }
 
-    toastMessage.textContent = message || "";
+    text.textContent = message;
 
-    toast.classList.remove("success", "error", "warning", "show");
+    toast.classList.remove(
+      "success",
+      "error",
+      "warning",
+      "show"
+    );
+
     toast.classList.add(type);
 
     requestAnimationFrame(() => {
       toast.classList.add("show");
     });
 
-    if (state.toastTimer) {
-      clearTimeout(state.toastTimer);
-    }
+    clearTimeout(state.toastTimer);
 
-    state.toastTimer = window.setTimeout(() => {
+    state.toastTimer = setTimeout(() => {
       toast.classList.remove("show");
     }, 3200);
   }
 
-  function setButtonLoading(button, loading, loadingText = "Saving...") {
+  function buttonLoading(button, loading, text) {
     if (!button) {
       return;
     }
 
     if (loading) {
       if (!button.dataset.originalText) {
-        button.dataset.originalText = button.textContent.trim();
+        button.dataset.originalText =
+          button.textContent.trim();
       }
 
       button.disabled = true;
-      button.textContent = loadingText;
-    } else {
-      button.disabled = false;
 
-      if (button.dataset.originalText) {
-        button.textContent = button.dataset.originalText;
-        delete button.dataset.originalText;
+      if (text) {
+        button.textContent = text;
       }
+
+      return;
+    }
+
+    button.disabled = false;
+
+    if (button.dataset.originalText) {
+      button.textContent =
+        button.dataset.originalText;
+
+      delete button.dataset.originalText;
     }
   }
 
   /* ==========================================================
-     AUTHENTICATION
-     ========================================================== */
+     AUTH
+  ========================================================== */
 
-  async function checkAdminUser(userId) {
+  async function verifyAdmin(userId) {
     if (!userId) {
       return false;
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = createSupabase();
 
     const { data, error } = await supabase
       .from("admin_users")
@@ -409,51 +413,62 @@
       .maybeSingle();
 
     if (error) {
-      console.error("Admin verification error:", error);
       throw error;
     }
 
     return Boolean(data);
   }
 
-  async function handleLogin(event) {
+  async function login(event) {
     event.preventDefault();
 
-    const emailInput = getElement("loginEmail");
-    const passwordInput = getElement("loginPassword");
-    const submitButton = getElement("loginButton");
+    const email = String(
+      byId("loginEmail")?.value || ""
+    ).trim();
 
-    const email = String(emailInput?.value || "").trim();
-    const password = String(passwordInput?.value || "");
+    const password = String(
+      byId("loginPassword")?.value || ""
+    );
+
+    const button = byId("loginButton");
 
     if (!email || !password) {
-      setLoginMessage("Please enter your email and password.", "error");
+      setLoginMessage(
+        "Please enter your email and password.",
+        "error"
+      );
       return;
     }
 
-    const supabase = createSupabaseClient();
-
-    setButtonLoading(submitButton, true, "Signing in...");
+    buttonLoading(button, true, "Signing in...");
     setLoginMessage("Signing in...", "info");
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const supabase = createSupabase();
+
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
       if (error) {
         throw error;
       }
 
       if (!data?.user) {
-        throw new Error("Login succeeded but no user was returned.");
+        throw new Error(
+          "Login succeeded but no user was returned."
+        );
       }
 
-      const isAdmin = await checkAdminUser(data.user.id);
+      const admin = await verifyAdmin(
+        data.user.id
+      );
 
-      if (!isAdmin) {
+      if (!admin) {
         await supabase.auth.signOut();
+
         throw new Error(
           "This account does not have administrator access."
         );
@@ -461,25 +476,28 @@
 
       state.session = data.session;
 
-      setLoginMessage("Login successful. Loading admin panel...", "success");
-
       await initializeAdmin(data.session);
 
+      setLoginMessage(
+        "Login successful.",
+        "success"
+      );
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Admin login error:", error);
 
       setLoginMessage(
-        error?.message || "Unable to sign in. Please check your details.",
+        error?.message ||
+          "Unable to sign in. Please check your email and password.",
         "error"
       );
     } finally {
-      setButtonLoading(submitButton, false);
+      buttonLoading(button, false);
     }
   }
 
-  async function handleLogout() {
+  async function logout() {
     try {
-      const supabase = createSupabaseClient();
+      const supabase = createSupabase();
 
       await supabase.auth.signOut();
 
@@ -487,114 +505,123 @@
       state.products = [];
 
       showLoginScreen();
-      closeMobileSidebar();
 
-      setLoginMessage("You have been signed out.", "success");
-
+      setLoginMessage(
+        "You have been signed out.",
+        "success"
+      );
     } catch (error) {
-      console.error("Logout error:", error);
-      showToast("Unable to sign out completely.", "error");
+      console.error(error);
+
+      showToast(
+        "Unable to sign out.",
+        "error"
+      );
     }
-  }
-
-  async function initializeAuth() {
-    const supabase = createSupabaseClient();
-
-    showLoginScreen();
-
-    const {
-      data: { session }
-    } = await supabase.auth.getSession();
-
-    if (session?.user) {
-      try {
-        const isAdmin = await checkAdminUser(session.user.id);
-
-        if (isAdmin) {
-          state.session = session;
-          await initializeAdmin(session);
-          return;
-        }
-
-        await supabase.auth.signOut();
-
-      } catch (error) {
-        console.error("Existing session verification failed:", error);
-      }
-    }
-
-    showLoginScreen();
-
-    supabase.auth.onAuthStateChange(async (event, sessionData) => {
-      if (event === "SIGNED_OUT") {
-        state.session = null;
-        showLoginScreen();
-        return;
-      }
-
-      if (
-        (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") &&
-        sessionData?.user
-      ) {
-        try {
-          const isAdmin = await checkAdminUser(sessionData.user.id);
-
-          if (!isAdmin) {
-            await supabase.auth.signOut();
-            setLoginMessage(
-              "This account does not have administrator access.",
-              "error"
-            );
-            return;
-          }
-
-          state.session = sessionData;
-
-          if (event === "SIGNED_IN") {
-            await initializeAdmin(sessionData);
-          }
-        } catch (error) {
-          console.error("Auth state verification failed:", error);
-        }
-      }
-    });
-  }
-
-  /* ==========================================================
-     INITIALIZATION
-     ========================================================== */
-
-  async function initializeAdmin(session) {
-    state.session = session;
-
-    showAdminApp();
-
-    const emailElement = getElement("adminUserEmail");
-
-    if (emailElement) {
-      emailElement.textContent = session?.user?.email || "";
-    }
-
-    setMetalMode(state.metalMode, false);
-
-    bindNavigation();
-    bindMetalControls();
-    bindProductControls();
-    bindFormControls();
-    bindModalControls();
-
-    resetProductForm();
-
-    await loadProducts();
-    showView(state.currentView);
   }
 
   /* ==========================================================
      NAVIGATION
-     ========================================================== */
+  ========================================================== */
+
+  function getViewButtons() {
+    return $$("[data-admin-view]");
+  }
+
+  function getViewSection(view) {
+    const map = {
+      dashboard: byId("dashboardView"),
+      products: byId("productsView"),
+      "add-product": byId("addProductView")
+    };
+
+    return map[view] || null;
+  }
+
+  function showView(view) {
+    const allowed = [
+      "dashboard",
+      "products",
+      "add-product"
+    ];
+
+    if (!allowed.includes(view)) {
+      view = "dashboard";
+    }
+
+    state.currentView = view;
+
+    const dashboard = byId("dashboardView");
+    const products = byId("productsView");
+    const addProduct = byId("addProductView");
+
+    [dashboard, products, addProduct]
+      .filter(Boolean)
+      .forEach((section) => {
+        const active =
+          section === getViewSection(view);
+
+        section.hidden = !active;
+        section.classList.toggle(
+          "active",
+          active
+        );
+      });
+
+    getViewButtons().forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.adminView === view
+      );
+    });
+
+    updateHeader(view);
+
+    if (view === "dashboard") {
+      renderDashboard();
+    }
+
+    if (view === "products") {
+      renderProducts();
+    }
+  }
+
+  function updateHeader(view) {
+    const title = byId("adminPageTitle");
+    const eyebrow = byId("adminPageEyebrow");
+
+    const data = {
+      dashboard: {
+        eyebrow: "Dashboard",
+        title: "Jewellery Catalogue"
+      },
+      products: {
+        eyebrow: "Catalogue Manager",
+        title: "Manage Jewellery"
+      },
+      "add-product": {
+        eyebrow: state.editingProductId
+          ? "Edit Jewellery"
+          : "New Jewellery",
+        title: state.editingProductId
+          ? "Edit Product"
+          : "Add Product"
+      }
+    };
+
+    const current = data[view];
+
+    if (title) {
+      title.textContent = current.title;
+    }
+
+    if (eyebrow) {
+      eyebrow.textContent = current.eyebrow;
+    }
+  }
 
   function bindNavigation() {
-    $$(".sidebar-nav-item").forEach((button) => {
+    getViewButtons().forEach((button) => {
       if (button.dataset.bound === "true") {
         return;
       }
@@ -602,241 +629,168 @@
       button.dataset.bound = "true";
 
       button.addEventListener("click", () => {
-        const view = button.dataset.view;
+        showView(
+          button.dataset.adminView
+        );
 
-        if (!view) {
-          return;
-        }
-
-        showView(view);
-        closeMobileSidebar();
+        closeMobileMenu();
       });
     });
 
-    const logoutButton = getElement("logoutButton");
+    const logoutButton =
+      byId("logoutButton");
 
-    if (logoutButton && logoutButton.dataset.bound !== "true") {
+    if (
+      logoutButton &&
+      logoutButton.dataset.bound !== "true"
+    ) {
       logoutButton.dataset.bound = "true";
-      logoutButton.addEventListener("click", handleLogout);
+      logoutButton.addEventListener(
+        "click",
+        logout
+      );
     }
 
-    const mobileToggle = getElement("mobileSidebarToggle");
+    const headerLogout =
+      byId("headerLogoutButton");
 
-    if (mobileToggle && mobileToggle.dataset.bound !== "true") {
-      mobileToggle.dataset.bound = "true";
-
-      mobileToggle.addEventListener("click", toggleMobileSidebar);
+    if (
+      headerLogout &&
+      headerLogout.dataset.bound !== "true"
+    ) {
+      headerLogout.dataset.bound = "true";
+      headerLogout.addEventListener(
+        "click",
+        logout
+      );
     }
 
-    const overlay = getElement("adminSidebarOverlay");
+    const mobileButton =
+      byId("mobileSidebarToggle");
 
-    if (overlay && overlay.dataset.bound !== "true") {
-      overlay.dataset.bound = "true";
+    if (
+      mobileButton &&
+      mobileButton.dataset.bound !== "true"
+    ) {
+      mobileButton.dataset.bound = "true";
 
-      overlay.addEventListener("click", closeMobileSidebar);
+      mobileButton.addEventListener(
+        "click",
+        toggleMobileMenu
+      );
     }
   }
 
-  function showView(view) {
-    const allowedViews = ["dashboard", "products", "add-product"];
-
-    state.currentView = allowedViews.includes(view)
-      ? view
-      : "dashboard";
-
-    $$(".admin-view").forEach((section) => {
-      section.classList.toggle(
-        "active",
-        section.dataset.view === state.currentView
-      );
-    });
-
-    $$(".sidebar-nav-item").forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.view === state.currentView
-      );
-    });
-
-    const headerTitle = getElement("adminHeaderTitle");
-    const headerSubtitle = getElement("adminHeaderSubtitle");
-
-    const titles = {
-      dashboard: {
-        title: "Dashboard",
-        subtitle: "Overview of your jewellery catalogue."
-      },
-      products: {
-        title: "Products",
-        subtitle: "Manage Gold and Silver jewellery."
-      },
-      "add-product": {
-        title: state.editingProductId ? "Edit Product" : "Add Product",
-        subtitle: state.editingProductId
-          ? "Update the selected jewellery item."
-          : "Add a new jewellery item to your catalogue."
-      }
-    };
-
-    const current = titles[state.currentView];
-
-    if (headerTitle) {
-      headerTitle.textContent = current.title;
-    }
-
-    if (headerSubtitle) {
-      headerSubtitle.textContent = current.subtitle;
-    }
-
-    if (state.currentView === "dashboard") {
-      renderDashboard();
-    }
-
-    if (state.currentView === "products") {
-      renderProducts();
-    }
-  }
-
-  function toggleMobileSidebar() {
-    const sidebar = $(".admin-sidebar");
-    const overlay = getElement("adminSidebarOverlay");
+  function toggleMobileMenu() {
+    const sidebar =
+      $(".admin-sidebar");
 
     if (!sidebar) {
       return;
     }
 
-    const open = sidebar.classList.toggle("mobile-open");
-
-    if (overlay) {
-      overlay.classList.toggle("active", open);
-    }
+    sidebar.classList.toggle(
+      "mobile-open"
+    );
   }
 
-  function closeMobileSidebar() {
-    const sidebar = $(".admin-sidebar");
-    const overlay = getElement("adminSidebarOverlay");
+  function closeMobileMenu() {
+    const sidebar =
+      $(".admin-sidebar");
 
     if (sidebar) {
-      sidebar.classList.remove("mobile-open");
-    }
-
-    if (overlay) {
-      overlay.classList.remove("active");
+      sidebar.classList.remove(
+        "mobile-open"
+      );
     }
   }
 
   /* ==========================================================
-     METAL MODE
-     ========================================================== */
-
-  function bindMetalControls() {
-    const toggle = getElement("adminMetalToggle");
-
-    if (toggle && toggle.dataset.bound !== "true") {
-      toggle.dataset.bound = "true";
-
-      toggle.addEventListener("click", () => {
-        const nextMetal =
-          state.metalMode === "gold"
-            ? "silver"
-            : "gold";
-
-        setMetalMode(nextMetal, true);
-      });
-    }
-
-    $$("[data-product-metal]").forEach((button) => {
-      if (button.dataset.bound === "true") {
-        return;
-      }
-
-      button.dataset.bound = "true";
-
-      button.addEventListener("click", () => {
-        const value = button.dataset.productMetal;
-
-        state.productMetalFilter =
-          value === "gold" || value === "silver"
-            ? value
-            : "all";
-
-        $$("[data-product-metal]").forEach((item) => {
-          item.classList.toggle(
-            "active",
-            item.dataset.productMetal === state.productMetalFilter
-          );
-        });
-
-        updateCategoryFilterOptions();
-        renderProducts();
-      });
-    });
-  }
+     METAL
+  ========================================================== */
 
   function setMetalMode(metal, refresh = true) {
-    state.metalMode = normalizeMetal(metal);
+    state.metalMode =
+      normalizeMetal(metal);
+
+    const silver =
+      state.metalMode === "silver";
 
     document.body.classList.toggle(
       "admin-silver-mode",
-      state.metalMode === "silver"
+      silver
     );
 
-    const toggle = getElement("adminMetalToggle");
+    const toggle =
+      byId("adminMetalToggle");
 
     if (toggle) {
       toggle.classList.toggle(
         "silver",
-        state.metalMode === "silver"
+        silver
       );
 
       toggle.setAttribute(
         "aria-pressed",
-        state.metalMode === "silver" ? "true" : "false"
+        String(silver)
       );
     }
 
-    const goldLabel = getElement("goldAdminLabel");
-    const silverLabel = getElement("silverAdminLabel");
+    const goldLabel =
+      byId("goldAdminLabel");
+
+    const silverLabel =
+      byId("silverAdminLabel");
 
     if (goldLabel) {
       goldLabel.classList.toggle(
         "active",
-        state.metalMode === "gold"
+        !silver
       );
-
-      goldLabel.classList.remove("silver-active");
     }
 
     if (silverLabel) {
       silverLabel.classList.toggle(
         "active",
-        state.metalMode === "silver"
+        silver
       );
 
       silverLabel.classList.toggle(
         "silver-active",
-        state.metalMode === "silver"
+        silver
       );
     }
 
-    const productMetalInput = getElement("productMetal");
+    const sidebarLabel =
+      byId("sidebarMetalLabel");
 
-    if (
-      productMetalInput &&
-      document.activeElement !== productMetalInput &&
-      !state.editingProductId
-    ) {
-      productMetalInput.value = state.metalMode;
-      updateCategoryOptions(state.metalMode);
+    if (sidebarLabel) {
+      sidebarLabel.textContent =
+        metalLabel(state.metalMode)
+          .toUpperCase();
     }
 
-    const sidebarModeText = $(".sidebar-mode-value");
+    const formMetal =
+      byId("productMetal");
 
-    if (sidebarModeText) {
-      sidebarModeText.innerHTML = `
-        <span class="sidebar-mode-dot"></span>
-        ${escapeHtml(formatMetal(state.metalMode))} Catalogue
-      `;
+    if (
+      formMetal &&
+      !state.editingProductId
+    ) {
+      formMetal.value =
+        state.metalMode;
+
+      updateCategoryOptions(
+        state.metalMode
+      );
+    }
+
+    const dashboardMetal =
+      byId("dashboardMetalName");
+
+    if (dashboardMetal) {
+      dashboardMetal.textContent =
+        metalLabel(state.metalMode);
     }
 
     if (refresh) {
@@ -846,514 +800,511 @@
     }
   }
 
-  /* ==========================================================
-     CATEGORY SELECTS
-     ========================================================== */
+  function bindMetalControls() {
+    const toggle =
+      byId("adminMetalToggle");
 
-  function updateCategoryOptions(metal, selectedValue = "") {
-    const select = getElement("productCategory");
+    if (
+      toggle &&
+      toggle.dataset.bound !== "true"
+    ) {
+      toggle.dataset.bound = "true";
+
+      toggle.addEventListener(
+        "click",
+        () => {
+          setMetalMode(
+            state.metalMode === "gold"
+              ? "silver"
+              : "gold"
+          );
+        }
+      );
+    }
+
+    $$("[data-product-metal]")
+      .forEach((button) => {
+        if (
+          button.dataset.bound === "true"
+        ) {
+          return;
+        }
+
+        button.dataset.bound = "true";
+
+        button.addEventListener(
+          "click",
+          () => {
+            const value =
+              button.dataset.productMetal;
+
+            state.productMetalFilter =
+              value === "gold" ||
+              value === "silver"
+                ? value
+                : "all";
+
+            $$("[data-product-metal]")
+              .forEach((item) => {
+                item.classList.toggle(
+                  "active",
+                  item.dataset.productMetal ===
+                    state.productMetalFilter
+                );
+              });
+
+            updateCategoryFilterOptions();
+            renderProducts();
+          }
+        );
+      });
+  }
+
+  /* ==========================================================
+     CATEGORY
+  ========================================================== */
+
+  function updateCategoryOptions(
+    metal,
+    selected = ""
+  ) {
+    const select =
+      byId("productCategory");
 
     if (!select) {
       return;
     }
 
-    const normalizedMetal = normalizeMetal(metal);
-    const categories = getCategorySet(normalizedMetal);
+    const categories =
+      categoryList(metal);
 
-    const selected =
-      categories.some((category) => category.value === selectedValue)
-        ? selectedValue
-        : categories[0]?.value || "";
+    select.innerHTML =
+      categories
+        .map(
+          ([value, label]) =>
+            `<option value="${value}">
+              ${escapeHtml(label)}
+            </option>`
+        )
+        .join("");
 
-    select.innerHTML = categories
-      .map(
-        (category) =>
-          `<option value="${escapeHtml(category.value)}">${escapeHtml(
-            category.label
-          )}</option>`
+    if (
+      categories.some(
+        ([value]) => value === selected
       )
-      .join("");
-
-    if (selected) {
+    ) {
       select.value = selected;
     }
   }
 
   function updateCategoryFilterOptions() {
-    const select = getElement("productCategoryFilter");
+    const select =
+      byId("productCategoryFilter");
 
     if (!select) {
       return;
     }
 
-    const filterMetal =
+    const metal =
       state.productMetalFilter === "all"
         ? state.metalMode
         : state.productMetalFilter;
 
-    const categories = getCategorySet(filterMetal);
+    const categories =
+      categoryList(metal);
 
-    const previousValue = state.productCategoryFilter;
+    const previous =
+      state.productCategoryFilter;
 
-    select.innerHTML = `
-      <option value="all">All Categories</option>
-      ${categories
+    select.innerHTML =
+      `<option value="all">All Categories</option>` +
+      categories
         .map(
-          (category) =>
-            `<option value="${escapeHtml(category.value)}">${escapeHtml(
-              category.label
-            )}</option>`
+          ([value, label]) =>
+            `<option value="${value}">
+              ${escapeHtml(label)}
+            </option>`
         )
-        .join("")}
-    `;
+        .join("");
 
     if (
-      previousValue === "all" ||
+      previous === "all" ||
       categories.some(
-        (category) => category.value === previousValue
+        ([value]) => value === previous
       )
     ) {
-      select.value = previousValue;
+      select.value = previous;
     } else {
-      state.productCategoryFilter = "all";
+      state.productCategoryFilter =
+        "all";
+
       select.value = "all";
     }
   }
 
   /* ==========================================================
-     PRODUCT CONTROLS
-     ========================================================== */
-
-  function bindProductControls() {
-    const search = getElement("productSearch");
-
-    if (search && search.dataset.bound !== "true") {
-      search.dataset.bound = "true";
-
-      search.addEventListener("input", () => {
-        state.productSearch = search.value.trim().toLowerCase();
-        renderProducts();
-      });
-    }
-
-    const categoryFilter = getElement("productCategoryFilter");
-
-    if (
-      categoryFilter &&
-      categoryFilter.dataset.bound !== "true"
-    ) {
-      categoryFilter.dataset.bound = "true";
-
-      categoryFilter.addEventListener("change", () => {
-        state.productCategoryFilter = categoryFilter.value;
-        renderProducts();
-      });
-    }
-
-    const statusFilter = getElement("productStatusFilter");
-
-    if (
-      statusFilter &&
-      statusFilter.dataset.bound !== "true"
-    ) {
-      statusFilter.dataset.bound = "true";
-
-      statusFilter.addEventListener("change", () => {
-        state.productStatusFilter = statusFilter.value;
-        renderProducts();
-      });
-    }
-
-    const addButtons = $$(
-      '[data-action="add-product"]'
-    );
-
-    addButtons.forEach((button) => {
-      if (button.dataset.bound === "true") {
-        return;
-      }
-
-      button.dataset.bound = "true";
-
-      button.addEventListener("click", () => {
-        startNewProduct();
-      });
-    });
-
-    const refreshButton = getElement("refreshProductsButton");
-
-    if (
-      refreshButton &&
-      refreshButton.dataset.bound !== "true"
-    ) {
-      refreshButton.dataset.bound = "true";
-
-      refreshButton.addEventListener("click", async () => {
-        await loadProducts();
-      });
-    }
-
-    const table = getElement("productsTable");
-
-    if (table && table.dataset.bound !== "true") {
-      table.dataset.bound = "true";
-
-      table.addEventListener("click", handleProductTableClick);
-    }
-  }
-
-  function handleProductTableClick(event) {
-    const actionButton = event.target.closest("[data-product-action]");
-
-    if (!actionButton) {
-      return;
-    }
-
-    const action = actionButton.dataset.productAction;
-    const productId = actionButton.dataset.productId;
-
-    if (!productId) {
-      return;
-    }
-
-    if (action === "edit") {
-      editProduct(productId);
-      return;
-    }
-
-    if (action === "delete") {
-      openDeleteModal(productId);
-      return;
-    }
-
-    if (action === "toggle-publish") {
-      togglePublished(productId);
-    }
-  }
-
-  /* ==========================================================
-     LOAD PRODUCTS
-     ========================================================== */
+     PRODUCTS LOAD
+  ========================================================== */
 
   async function loadProducts() {
-    const table = getElement("productsTable");
+    const dashboard =
+      byId("dashboardProducts");
+
+    const table =
+      byId("productsTable");
+
+    if (dashboard) {
+      dashboard.innerHTML =
+        `<div class="admin-loading">
+          Loading products...
+        </div>`;
+    }
 
     if (table) {
-      table.innerHTML = `
-        <div class="admin-loading">
-          Loading jewellery products...
-        </div>
-      `;
+      table.innerHTML =
+        `<div class="admin-loading">
+          Loading products...
+        </div>`;
     }
 
     try {
-      const supabase = createSupabaseClient();
+      const supabase =
+        createSupabase();
 
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", {
-          ascending: false
-        });
+      const { data, error } =
+        await supabase
+          .from("products")
+          .select("*")
+          .order(
+            "created_at",
+            { ascending: false }
+          );
 
       if (error) {
         throw error;
       }
 
-      state.products = Array.isArray(data)
-        ? data.map(normalizeProduct)
-        : [];
+      state.products =
+        Array.isArray(data)
+          ? data.map(normalizeProduct)
+          : [];
 
       updateCategoryFilterOptions();
       renderDashboard();
       renderProducts();
-
     } catch (error) {
-      console.error("Product loading error:", error);
+      console.error(
+        "Product loading error:",
+        error
+      );
+
+      state.products = [];
+
+      const message =
+        error?.message ||
+        "Unable to load products.";
+
+      if (dashboard) {
+        dashboard.innerHTML =
+          `<div class="admin-empty-state">
+            <h3>Unable to load products</h3>
+            <p>${escapeHtml(message)}</p>
+          </div>`;
+      }
 
       if (table) {
-        table.innerHTML = `
-          <div class="admin-empty-state">
-            <div>
-              <div class="admin-empty-state-icon">!</div>
-              <h3>Unable to load products</h3>
-              <p>${escapeHtml(
-                error?.message ||
-                  "Please check your Supabase connection and try again."
-              )}</p>
-            </div>
-          </div>
-        `;
+        table.innerHTML =
+          `<div class="admin-empty-state">
+            <h3>Unable to load products</h3>
+            <p>${escapeHtml(message)}</p>
+          </div>`;
       }
 
       showToast(
-        error?.message || "Unable to load products.",
+        message,
         "error"
       );
     }
   }
 
   /* ==========================================================
-     DASHBOARD
-     ========================================================== */
+     FILTERS
+  ========================================================== */
 
-  function renderDashboard() {
-    const total = state.products.length;
+  function getFilteredProducts() {
+    const search =
+      state.productSearch
+        .trim()
+        .toLowerCase();
 
-    const published = state.products.filter(
-      (product) => product.is_published
-    ).length;
+    return state.products.filter(
+      (product) => {
+        if (
+          state.productMetalFilter !==
+            "all" &&
+          product.metal !==
+            state.productMetalFilter
+        ) {
+          return false;
+        }
 
-    const featured = state.products.filter(
-      (product) => product.featured
-    ).length;
+        if (
+          state.productCategoryFilter !==
+            "all" &&
+          product.category !==
+            state.productCategoryFilter
+        ) {
+          return false;
+        }
 
-    const categories = new Set(
-      state.products
-        .filter(
-          (product) =>
-            normalizeMetal(product.metal) === state.metalMode
-        )
-        .map((product) => product.category)
+        if (
+          state.productStatusFilter ===
+          "published" &&
+          !product.is_published
+        ) {
+          return false;
+        }
+
+        if (
+          state.productStatusFilter ===
+          "hidden" &&
+          product.is_published
+        ) {
+          return false;
+        }
+
+        if (
+          state.productStatusFilter ===
+          "featured" &&
+          !product.featured
+        ) {
+          return false;
+        }
+
+        if (search) {
+          const searchable = [
+            product.name,
+            product.sku,
+            product.category,
+            product.metal,
+            product.material,
+            product.description
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          if (
+            !searchable.includes(search)
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      }
     );
+  }
 
-    const totalElement = getElement("totalProducts");
-    const publishedElement = getElement("publishedProducts");
-    const featuredElement = getElement("featuredProducts");
-    const categoryElement = getElement("categoryCount");
+  function bindProductControls() {
+    const search =
+      byId("productSearch");
 
-    if (totalElement) {
-      totalElement.textContent = total;
+    if (
+      search &&
+      search.dataset.bound !== "true"
+    ) {
+      search.dataset.bound = "true";
+
+      search.addEventListener(
+        "input",
+        () => {
+          state.productSearch =
+            search.value;
+
+          renderProducts();
+        }
+      );
     }
 
-    if (publishedElement) {
-      publishedElement.textContent = published;
+    const category =
+      byId("productCategoryFilter");
+
+    if (
+      category &&
+      category.dataset.bound !== "true"
+    ) {
+      category.dataset.bound = "true";
+
+      category.addEventListener(
+        "change",
+        () => {
+          state.productCategoryFilter =
+            category.value;
+
+          renderProducts();
+        }
+      );
     }
 
-    if (featuredElement) {
-      featuredElement.textContent = featured;
-    }
+    const status =
+      byId("productStatusFilter");
 
-    if (categoryElement) {
-      categoryElement.textContent = categories.size;
-    }
+    if (
+      status &&
+      status.dataset.bound !== "true"
+    ) {
+      status.dataset.bound = "true";
 
-    const metalProducts = state.products.filter(
-      (product) =>
-        normalizeMetal(product.metal) === state.metalMode
-    );
+      status.addEventListener(
+        "change",
+        () => {
+          state.productStatusFilter =
+            status.value;
 
-    const dashboardMetalCount = getElement("dashboardMetalCount");
-
-    if (dashboardMetalCount) {
-      dashboardMetalCount.textContent = metalProducts.length;
-    }
-
-    const dashboardMetalName = getElement("dashboardMetalName");
-
-    if (dashboardMetalName) {
-      dashboardMetalName.textContent = formatMetal(
-        state.metalMode
+          renderProducts();
+        }
       );
     }
   }
 
   /* ==========================================================
-     FILTER PRODUCTS
-     ========================================================== */
+     RENDER DASHBOARD
+  ========================================================== */
 
-  function getFilteredProducts() {
-    return state.products.filter((product) => {
-      if (
-        state.productMetalFilter !== "all" &&
-        product.metal !== state.productMetalFilter
-      ) {
-        return false;
-      }
+  function renderDashboard() {
+    const metal =
+      state.metalMode;
 
-      if (
-        state.productCategoryFilter !== "all" &&
-        product.category !== state.productCategoryFilter
-      ) {
-        return false;
-      }
+    const products =
+      state.products.filter(
+        (product) =>
+          product.metal === metal
+      );
 
-      if (state.productStatusFilter === "published") {
-        if (!product.is_published) {
-          return false;
-        }
-      }
+    const published =
+      products.filter(
+        (product) =>
+          product.is_published
+      ).length;
 
-      if (state.productStatusFilter === "draft") {
-        if (product.is_published) {
-          return false;
-        }
-      }
+    const featured =
+      products.filter(
+        (product) =>
+          product.featured
+      ).length;
 
-      if (state.productStatusFilter === "featured") {
-        if (!product.featured) {
-          return false;
-        }
-      }
+    const categories =
+      new Set(
+        products.map(
+          (product) =>
+            product.category
+        )
+      );
 
-      if (state.productSearch) {
-        const searchable = [
-          product.name,
-          product.sku,
-          product.category,
-          product.metal,
-          product.material,
-          product.description
-        ]
-          .join(" ")
-          .toLowerCase();
+    const total =
+      byId("totalProducts");
 
-        if (!searchable.includes(state.productSearch)) {
-          return false;
-        }
-      }
+    const publishedElement =
+      byId("publishedProducts");
 
-      return true;
-    });
+    const featuredElement =
+      byId("featuredProducts");
+
+    const categoryCount =
+      byId("categoryCount");
+
+    if (total) {
+      total.textContent =
+        products.length;
+    }
+
+    if (publishedElement) {
+      publishedElement.textContent =
+        published;
+    }
+
+    if (featuredElement) {
+      featuredElement.textContent =
+        featured;
+    }
+
+    if (categoryCount) {
+      categoryCount.textContent =
+        categories.size;
+    }
+
+    const dashboard =
+      byId("dashboardProducts");
+
+    if (!dashboard) {
+      return;
+    }
+
+    const latest =
+      products.slice(0, 6);
+
+    if (!latest.length) {
+      dashboard.innerHTML =
+        `<div class="admin-empty-state">
+          <h3>No ${metalLabel(metal)} products yet</h3>
+          <p>
+            Use “Add Jewellery” to add your first
+            ${metalLabel(metal).toLowerCase()} product.
+          </p>
+        </div>`;
+
+      return;
+    }
+
+    dashboard.innerHTML = `
+      <div class="admin-table-scroll">
+        <table class="admin-product-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${latest.map(productRow).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 
   /* ==========================================================
      RENDER PRODUCTS
-     ========================================================== */
+  ========================================================== */
 
   function renderProducts() {
-    const container = getElement("productsTable");
+    const container =
+      byId("productsTable");
 
     if (!container) {
       return;
     }
 
-    const products = getFilteredProducts();
+    const products =
+      getFilteredProducts();
 
     if (!products.length) {
-      container.innerHTML = `
-        <div class="admin-empty-state">
-          <div>
-            <div class="admin-empty-state-icon">◇</div>
-            <h3>No products found</h3>
-            <p>
-              There are no products matching your current filters.
-              Add a new product or change the filters above.
-            </p>
-          </div>
-        </div>
-      `;
+      container.innerHTML =
+        `<div class="admin-empty-state">
+          <h3>No products found</h3>
+          <p>
+            Try another filter or add a new product.
+          </p>
+        </div>`;
+
       return;
     }
 
-    const rows = products.map((product) => {
-      const image = getPrimaryImage(product);
-
-      return `
-        <tr>
-          <td>
-            <div class="admin-product-name-cell">
-              <div class="admin-product-thumb">
-                ${
-                  image
-                    ? `<img src="${escapeHtml(
-                        image
-                      )}" alt="${escapeHtml(product.name)}" loading="lazy">`
-                    : `<div class="admin-product-thumb-placeholder">◇</div>`
-                }
-              </div>
-
-              <div>
-                <p class="admin-product-name">
-                  ${escapeHtml(product.name)}
-                </p>
-
-                ${
-                  product.sku
-                    ? `<p class="admin-product-sku">SKU: ${escapeHtml(
-                        product.sku
-                      )}</p>`
-                    : ""
-                }
-              </div>
-            </div>
-          </td>
-
-          <td>
-            <span class="admin-metal-badge ${escapeHtml(
-              product.metal
-            )}">
-              ${escapeHtml(formatMetal(product.metal))}
-            </span>
-          </td>
-
-          <td>
-            <span class="admin-category-badge">
-              ${escapeHtml(
-                getCategoryLabel(
-                  product.metal,
-                  product.category
-                )
-              )}
-            </span>
-          </td>
-
-          <td>
-            ${escapeHtml(formatPrice(product.price))}
-          </td>
-
-          <td>
-            ${
-              product.is_published
-                ? `<span class="admin-status-badge published">Published</span>`
-                : `<span class="admin-status-badge draft">Draft</span>`
-            }
-          </td>
-
-          <td>
-            ${
-              product.featured
-                ? `<span class="admin-featured-badge">Featured</span>`
-                : `<span style="color:#aaa;font-size:11px;">—</span>`
-            }
-          </td>
-
-          <td>
-            <div class="admin-table-actions">
-              <button
-                type="button"
-                class="table-action-button"
-                data-product-action="edit"
-                data-product-id="${escapeHtml(product.id)}"
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                class="table-action-button"
-                data-product-action="toggle-publish"
-                data-product-id="${escapeHtml(product.id)}"
-              >
-                ${product.is_published ? "Unpublish" : "Publish"}
-              </button>
-
-              <button
-                type="button"
-                class="table-action-button danger"
-                data-product-action="delete"
-                data-product-id="${escapeHtml(product.id)}"
-              >
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
-
     container.innerHTML = `
-      <div class="admin-product-table-wrap">
+      <div class="admin-table-scroll">
         <table class="admin-product-table">
           <thead>
             <tr>
@@ -1362,639 +1313,865 @@
               <th>Category</th>
               <th>Price</th>
               <th>Status</th>
-              <th>Featured</th>
-              <th style="text-align:right;">Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            ${rows}
+            ${products.map(productTableRow).join("")}
           </tbody>
         </table>
       </div>
     `;
+
+    bindProductRowActions();
   }
 
   function getPrimaryImage(product) {
-    if (product.image_url) {
-      return product.image_url;
-    }
+    return (
+      product.image_url ||
+      product.images?.[0] ||
+      ""
+    );
+  }
 
-    if (Array.isArray(product.images) && product.images.length) {
-      return product.images[0];
-    }
+  function productRow(product) {
+    const image =
+      getPrimaryImage(product);
 
-    return "";
+    return `
+      <tr>
+        <td>
+          <div class="admin-product-name-cell">
+            <div class="admin-product-thumb">
+              ${
+                image
+                  ? `<img
+                      src="${escapeHtml(image)}"
+                      alt="${escapeHtml(product.name)}"
+                    >`
+                  : `<div class="admin-product-thumb-placeholder">
+                      ◇
+                    </div>`
+              }
+            </div>
+
+            <div>
+              <p class="admin-product-name">
+                ${escapeHtml(product.name)}
+              </p>
+
+              ${
+                product.sku
+                  ? `<p class="admin-product-sku">
+                      SKU: ${escapeHtml(product.sku)}
+                    </p>`
+                  : ""
+              }
+            </div>
+          </div>
+        </td>
+
+        <td>${escapeHtml(metalLabel(product.metal))}</td>
+
+        <td>
+          ${escapeHtml(
+            categoryLabel(product.category)
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            priceLabel(product.price)
+          )}
+        </td>
+
+        <td>
+          ${
+            product.is_published
+              ? `<span class="admin-status published">
+                  Published
+                </span>`
+              : `<span class="admin-status hidden">
+                  Hidden
+                </span>`
+          }
+        </td>
+
+        <td>
+          <span class="admin-table-muted">
+            ${escapeHtml(
+              formatDate(
+                product.updated_at ||
+                product.created_at
+              )
+            )}
+          </span>
+        </td>
+      </tr>
+    `;
+  }
+
+  function productTableRow(product) {
+    const image =
+      getPrimaryImage(product);
+
+    return `
+      <tr>
+        <td>
+          <div class="admin-product-name-cell">
+            <div class="admin-product-thumb">
+              ${
+                image
+                  ? `<img
+                      src="${escapeHtml(image)}"
+                      alt="${escapeHtml(product.name)}"
+                    >`
+                  : `<div class="admin-product-thumb-placeholder">
+                      ◇
+                    </div>`
+              }
+            </div>
+
+            <div>
+              <p class="admin-product-name">
+                ${escapeHtml(product.name)}
+              </p>
+
+              ${
+                product.sku
+                  ? `<p class="admin-product-sku">
+                      SKU: ${escapeHtml(product.sku)}
+                    </p>`
+                  : ""
+              }
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <span class="admin-metal-badge ${product.metal}">
+            ${escapeHtml(
+              metalLabel(product.metal)
+            )}
+          </span>
+        </td>
+
+        <td>
+          ${escapeHtml(
+            categoryLabel(product.category)
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            priceLabel(product.price)
+          )}
+        </td>
+
+        <td>
+          ${
+            product.is_published
+              ? `<span class="admin-status published">
+                  Published
+                </span>`
+              : `<span class="admin-status hidden">
+                  Hidden
+                </span>`
+          }
+
+          ${
+            product.featured
+              ? `<span class="admin-status featured">
+                  Featured
+                </span>`
+              : ""
+          }
+        </td>
+
+        <td>
+          <div class="admin-table-actions">
+
+            <button
+              type="button"
+              class="admin-table-action"
+              data-action="edit"
+              data-product-id="${escapeHtml(product.id)}"
+            >
+              Edit
+            </button>
+
+            <button
+              type="button"
+              class="admin-table-action"
+              data-action="publish"
+              data-product-id="${escapeHtml(product.id)}"
+            >
+              ${
+                product.is_published
+                  ? "Hide"
+                  : "Publish"
+              }
+            </button>
+
+            <button
+              type="button"
+              class="admin-table-action danger"
+              data-action="delete"
+              data-product-id="${escapeHtml(product.id)}"
+            >
+              Delete
+            </button>
+
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  function bindProductRowActions() {
+    $("[data-action]") &&
+      $$("[data-action]").forEach(
+        (button) => {
+          if (
+            button.dataset.bound === "true"
+          ) {
+            return;
+          }
+
+          button.dataset.bound = "true";
+
+          button.addEventListener(
+            "click",
+            () => {
+              const id =
+                button.dataset.productId;
+
+              const action =
+                button.dataset.action;
+
+              if (action === "edit") {
+                editProduct(id);
+              }
+
+              if (action === "publish") {
+                togglePublished(id);
+              }
+
+              if (action === "delete") {
+                openDeleteModal(id);
+              }
+            }
+          );
+        }
+      );
   }
 
   /* ==========================================================
-     ADD / EDIT PRODUCT
-     ========================================================== */
+     PRODUCT FORM
+  ========================================================== */
 
-  function startNewProduct() {
+  function resetProductForm() {
     state.editingProductId = null;
     state.selectedFiles = [];
     state.existingImages = [];
 
-    resetProductForm();
+    const form =
+      byId("productForm");
 
-    const productMetal = getElement("productMetal");
-
-    if (productMetal) {
-      productMetal.value = state.metalMode;
+    if (form) {
+      form.reset();
     }
 
-    updateCategoryOptions(state.metalMode);
+    const metal =
+      byId("productMetal");
 
-    showView("add-product");
-
-    const nameInput = getElement("productName");
-
-    if (nameInput) {
-      window.setTimeout(() => nameInput.focus(), 100);
+    if (metal) {
+      metal.value =
+        state.metalMode;
     }
+
+    updateCategoryOptions(
+      state.metalMode
+    );
+
+    const published =
+      byId("productPublished");
+
+    if (published) {
+      published.checked = true;
+    }
+
+    const featured =
+      byId("productFeatured");
+
+    if (featured) {
+      featured.checked = false;
+    }
+
+    const id =
+      byId("productId");
+
+    if (id) {
+      id.value = "";
+    }
+
+    const title =
+      byId("productFormTitle");
+
+    if (title) {
+      title.textContent =
+        "Add Product";
+    }
+
+    const eyebrow =
+      byId("productFormEyebrow");
+
+    if (eyebrow) {
+      eyebrow.textContent =
+        "New Jewellery";
+    }
+
+    const save =
+      byId("saveProductButton");
+
+    if (save) {
+      save.textContent =
+        "Save Product";
+    }
+
+    setFormMessage("");
+
+    renderImagePreview();
   }
 
   function editProduct(productId) {
-    const product = state.products.find(
-      (item) => String(item.id) === String(productId)
-    );
+    const product =
+      state.products.find(
+        (item) =>
+          String(item.id) ===
+          String(productId)
+      );
 
     if (!product) {
-      showToast("Product could not be found.", "error");
+      showToast(
+        "Product could not be found.",
+        "error"
+      );
       return;
     }
 
-    state.editingProductId = product.id;
+    state.editingProductId =
+      product.id;
+
     state.selectedFiles = [];
-    state.existingImages = Array.isArray(product.images)
-      ? [...product.images]
-      : [];
+    state.existingImages =
+      [...product.images];
 
-    const productIdInput = getElement("productId");
-    const nameInput = getElement("productName");
-    const metalInput = getElement("productMetal");
-    const categoryInput = getElement("productCategory");
-    const priceInput = getElement("productPrice");
-    const skuInput = getElement("productSku");
-    const materialInput = getElement("productMaterial");
-    const descriptionInput = getElement("productDescription");
-    const publishedInput = getElement("productPublished");
-    const featuredInput = getElement("productFeatured");
+    byId("productId").value =
+      product.id;
 
-    if (productIdInput) {
-      productIdInput.value = product.id;
-    }
+    byId("productName").value =
+      product.name;
 
-    if (nameInput) {
-      nameInput.value = product.name;
-    }
-
-    if (metalInput) {
-      metalInput.value = product.metal;
-    }
+    byId("productMetal").value =
+      product.metal;
 
     updateCategoryOptions(
       product.metal,
       product.category
     );
 
-    if (priceInput) {
-      priceInput.value =
-        product.price === null ||
-        product.price === undefined
-          ? ""
-          : product.price;
+    byId("productPrice").value =
+      product.price ?? "";
+
+    byId("productSku").value =
+      product.sku;
+
+    byId("productMaterial").value =
+      product.material;
+
+    byId("productDescription").value =
+      product.description;
+
+    byId("productPublished").checked =
+      product.is_published;
+
+    byId("productFeatured").checked =
+      product.featured;
+
+    const title =
+      byId("productFormTitle");
+
+    if (title) {
+      title.textContent =
+        "Edit Product";
     }
 
-    if (skuInput) {
-      skuInput.value = product.sku;
-    }
+    const eyebrow =
+      byId("productFormEyebrow");
 
-    if (materialInput) {
-      materialInput.value = product.material;
-    }
-
-    if (descriptionInput) {
-      descriptionInput.value = product.description;
-    }
-
-    if (publishedInput) {
-      publishedInput.checked = product.is_published;
-    }
-
-    if (featuredInput) {
-      featuredInput.checked = product.featured;
+    if (eyebrow) {
+      eyebrow.textContent =
+        "Edit Jewellery";
     }
 
     renderImagePreview();
-
-    clearFormMessage();
+    setFormMessage("");
 
     showView("add-product");
-
-    window.setTimeout(() => {
-      if (nameInput) {
-        nameInput.focus();
-      }
-    }, 100);
-  }
-
-  function resetProductForm() {
-    const form = getElement("productForm");
-
-    if (form) {
-      form.reset();
-    }
-
-    state.editingProductId = null;
-    state.selectedFiles = [];
-    state.existingImages = [];
-
-    const productId = getElement("productId");
-    const metal = getElement("productMetal");
-    const published = getElement("productPublished");
-    const featured = getElement("productFeatured");
-
-    if (productId) {
-      productId.value = "";
-    }
-
-    if (metal) {
-      metal.value = CONFIG.defaultMetal;
-      updateCategoryOptions(CONFIG.defaultMetal);
-    }
-
-    if (published) {
-      published.checked = true;
-    }
-
-    if (featured) {
-      featured.checked = false;
-    }
-
-    renderImagePreview();
-    clearFormMessage();
-
-    const saveButton = getElement("saveProductButton");
-
-    if (saveButton) {
-      saveButton.textContent = "Save Product";
-    }
   }
 
   function bindFormControls() {
-    const form = getElement("productForm");
+    const form =
+      byId("productForm");
 
-    if (form && form.dataset.bound !== "true") {
+    if (
+      form &&
+      form.dataset.bound !== "true"
+    ) {
       form.dataset.bound = "true";
-      form.addEventListener("submit", handleProductSubmit);
+
+      form.addEventListener(
+        "submit",
+        saveProduct
+      );
     }
 
-    const cancelButton = getElement("cancelProductButton");
+    const cancel =
+      byId("cancelProductButton");
 
     if (
-      cancelButton &&
-      cancelButton.dataset.bound !== "true"
+      cancel &&
+      cancel.dataset.bound !== "true"
     ) {
-      cancelButton.dataset.bound = "true";
+      cancel.dataset.bound = "true";
 
-      cancelButton.addEventListener("click", () => {
-        resetProductForm();
-        showView("products");
-      });
-    }
-
-    const metalInput = getElement("productMetal");
-
-    if (
-      metalInput &&
-      metalInput.dataset.bound !== "true"
-    ) {
-      metalInput.dataset.bound = "true";
-
-      metalInput.addEventListener("change", () => {
-        const metal = normalizeMetal(metalInput.value);
-
-        const currentCategory =
-          getElement("productCategory")?.value || "";
-
-        const validCategory = getCategorySet(metal).some(
-          (category) => category.value === currentCategory
-        )
-          ? currentCategory
-          : "";
-
-        updateCategoryOptions(metal, validCategory);
-      });
-    }
-
-    const imageInput = getElement("productImages");
-
-    if (
-      imageInput &&
-      imageInput.dataset.bound !== "true"
-    ) {
-      imageInput.dataset.bound = "true";
-
-      imageInput.addEventListener("change", handleImageSelection);
-    }
-
-    const imagePreview = getElement("imagePreview");
-
-    if (
-      imagePreview &&
-      imagePreview.dataset.bound !== "true"
-    ) {
-      imagePreview.dataset.bound = "true";
-
-      imagePreview.addEventListener(
+      cancel.addEventListener(
         "click",
-        handleImagePreviewClick
+        () => {
+          resetProductForm();
+          showView("products");
+        }
+      );
+    }
+
+    const metal =
+      byId("productMetal");
+
+    if (
+      metal &&
+      metal.dataset.bound !== "true"
+    ) {
+      metal.dataset.bound = "true";
+
+      metal.addEventListener(
+        "change",
+        () => {
+          const current =
+            byId("productCategory")
+              ?.value || "";
+
+          updateCategoryOptions(
+            metal.value,
+            current
+          );
+        }
+      );
+    }
+
+    const images =
+      byId("productImages");
+
+    if (
+      images &&
+      images.dataset.bound !== "true"
+    ) {
+      images.dataset.bound = "true";
+
+      images.addEventListener(
+        "change",
+        handleImageSelection
+      );
+    }
+
+    const preview =
+      byId("imagePreview");
+
+    if (
+      preview &&
+      preview.dataset.bound !== "true"
+    ) {
+      preview.dataset.bound = "true";
+
+      preview.addEventListener(
+        "click",
+        removeImage
       );
     }
   }
 
-  /* ==========================================================
-     IMAGE HANDLING
-     ========================================================== */
-
   function handleImageSelection(event) {
-    const files = Array.from(event.target.files || []);
-
-    if (!files.length) {
-      return;
-    }
-
-    const validFiles = [];
+    const files =
+      Array.from(
+        event.target.files || []
+      );
 
     for (const file of files) {
-      if (!CONFIG.allowedImageTypes.includes(file.type)) {
+      if (
+        !CONFIG.allowedImageTypes
+          .includes(file.type)
+      ) {
         showToast(
-          `${file.name}: only JPG, PNG and WebP images are allowed.`,
+          `${file.name}: JPG, PNG or WebP only.`,
           "error"
         );
         continue;
       }
 
-      if (file.size > CONFIG.maxImageSize) {
+      if (
+        file.size >
+        CONFIG.maxImageSize
+      ) {
         showToast(
-          `${file.name}: image must be 6MB or smaller.`,
+          `${file.name}: maximum size is 6MB.`,
           "error"
         );
         continue;
       }
 
-      validFiles.push(file);
+      state.selectedFiles.push(file);
     }
-
-    state.selectedFiles = [
-      ...state.selectedFiles,
-      ...validFiles
-    ];
 
     event.target.value = "";
 
     renderImagePreview();
   }
 
-  function handleImagePreviewClick(event) {
-    const removeButton = event.target.closest(
-      "[data-remove-image]"
-    );
+  function removeImage(event) {
+    const button =
+      event.target.closest(
+        "[data-remove-image]"
+      );
 
-    if (!removeButton) {
+    if (!button) {
       return;
     }
 
-    const type = removeButton.dataset.removeImage;
+    const type =
+      button.dataset.removeImage;
+
+    const index =
+      Number(button.dataset.index);
+
+    if (!Number.isInteger(index)) {
+      return;
+    }
 
     if (type === "new") {
-      const index = Number(removeButton.dataset.index);
-
-      if (Number.isInteger(index)) {
-        state.selectedFiles.splice(index, 1);
-      }
+      state.selectedFiles.splice(
+        index,
+        1
+      );
     }
 
     if (type === "existing") {
-      const index = Number(removeButton.dataset.index);
-
-      if (Number.isInteger(index)) {
-        state.existingImages.splice(index, 1);
-      }
+      state.existingImages.splice(
+        index,
+        1
+      );
     }
 
     renderImagePreview();
   }
 
   function renderImagePreview() {
-    const preview = getElement("imagePreview");
+    const container =
+      byId("imagePreview");
 
-    if (!preview) {
+    if (!container) {
       return;
     }
 
-    if (
-      !state.selectedFiles.length &&
-      !state.existingImages.length
-    ) {
-      preview.classList.add("image-preview-empty");
-      preview.innerHTML = "";
-      return;
-    }
+    const existing =
+      state.existingImages
+        .map(
+          (url, index) => `
+            <div class="image-preview-item">
+              <img
+                src="${escapeHtml(url)}"
+                alt="Product image"
+              >
 
-    preview.classList.remove("image-preview-empty");
+              <button
+                type="button"
+                class="image-preview-item-remove"
+                data-remove-image="existing"
+                data-index="${index}"
+              >
+                ×
+              </button>
+            </div>
+          `
+        )
+        .join("");
 
-    const existingMarkup = state.existingImages
-      .map(
-        (url, index) => `
-          <div class="image-preview-item">
-            <img
-              src="${escapeHtml(url)}"
-              alt="Existing product image ${index + 1}"
-            >
+    const newImages =
+      state.selectedFiles
+        .map(
+          (file, index) => `
+            <div class="image-preview-item">
+              <img
+                src="${URL.createObjectURL(file)}"
+                alt="${escapeHtml(file.name)}"
+              >
 
-            <button
-              type="button"
-              class="image-preview-item-remove"
-              data-remove-image="existing"
-              data-index="${index}"
-              aria-label="Remove existing image"
-              title="Remove image"
-            >
-              ×
-            </button>
-          </div>
-        `
-      )
-      .join("");
+              <button
+                type="button"
+                class="image-preview-item-remove"
+                data-remove-image="new"
+                data-index="${index}"
+              >
+                ×
+              </button>
+            </div>
+          `
+        )
+        .join("");
 
-    const newMarkup = state.selectedFiles
-      .map(
-        (file, index) => `
-          <div class="image-preview-item">
-            <img
-              src="${URL.createObjectURL(file)}"
-              alt="${escapeHtml(file.name)}"
-            >
-
-            <button
-              type="button"
-              class="image-preview-item-remove"
-              data-remove-image="new"
-              data-index="${index}"
-              aria-label="Remove selected image"
-              title="Remove image"
-            >
-              ×
-            </button>
-          </div>
-        `
-      )
-      .join("");
-
-    preview.innerHTML = existingMarkup + newMarkup;
-  }
-
-  /* ==========================================================
-     PRODUCT VALIDATION
-     ========================================================== */
-
-  function collectProductFormData() {
-    const name = String(
-      getElement("productName")?.value || ""
-    ).trim();
-
-    const metal = normalizeMetal(
-      getElement("productMetal")?.value
-    );
-
-    const category = normalizeCategory(
-      getElement("productCategory")?.value,
-      metal
-    );
-
-    const priceRaw = String(
-      getElement("productPrice")?.value || ""
-    ).trim();
-
-    const sku = String(
-      getElement("productSku")?.value || ""
-    ).trim();
-
-    const material = String(
-      getElement("productMaterial")?.value || ""
-    ).trim();
-
-    const description = String(
-      getElement("productDescription")?.value || ""
-    ).trim();
-
-    const isPublished = Boolean(
-      getElement("productPublished")?.checked
-    );
-
-    const featured = Boolean(
-      getElement("productFeatured")?.checked
-    );
-
-    if (!name) {
-      throw new Error("Please enter the product name.");
-    }
-
-    if (!CATEGORY_SETS[metal].some(
-      (item) => item.value === category
-    )) {
-      throw new Error("Please select a valid category.");
-    }
-
-    let price = null;
-
-    if (priceRaw) {
-      price = Number(
-        priceRaw.replace(/,/g, "")
-      );
-
-      if (!Number.isFinite(price) || price < 0) {
-        throw new Error(
-          "Please enter a valid price."
-        );
-      }
-    }
-
-    return {
-      name,
-      metal,
-      category,
-      price,
-      sku,
-      material,
-      description,
-      is_published: isPublished,
-      featured
-    };
+    container.innerHTML =
+      existing + newImages;
   }
 
   /* ==========================================================
      SAVE PRODUCT
-     ========================================================== */
+  ========================================================== */
 
-  async function handleProductSubmit(event) {
+  async function saveProduct(event) {
     event.preventDefault();
 
     if (state.isSaving) {
       return;
     }
 
-    let formData;
+    const name =
+      String(
+        byId("productName")?.value || ""
+      ).trim();
 
-    try {
-      formData = collectProductFormData();
-    } catch (error) {
+    const metal =
+      normalizeMetal(
+        byId("productMetal")?.value
+      );
+
+    const category =
+      normalizeCategory(
+        byId("productCategory")?.value,
+        metal
+      );
+
+    const priceRaw =
+      String(
+        byId("productPrice")?.value || ""
+      ).trim();
+
+    const sku =
+      String(
+        byId("productSku")?.value || ""
+      ).trim();
+
+    const material =
+      String(
+        byId("productMaterial")?.value || ""
+      ).trim();
+
+    const description =
+      String(
+        byId("productDescription")?.value || ""
+      ).trim();
+
+    const published =
+      Boolean(
+        byId("productPublished")?.checked
+      );
+
+    const featured =
+      Boolean(
+        byId("productFeatured")?.checked
+      );
+
+    if (!name) {
       setFormMessage(
-        error?.message || "Please check the form.",
+        "Please enter a product name.",
         "error"
       );
       return;
     }
 
-    const wasEditing = Boolean(state.editingProductId);
+    if (
+      !categoryList(metal).some(
+        ([value]) =>
+          value === category
+      )
+    ) {
+      setFormMessage(
+        "Please select a valid category.",
+        "error"
+      );
+      return;
+    }
+
+    let price = null;
+
+    if (priceRaw) {
+      price =
+        Number(
+          priceRaw.replace(/,/g, "")
+        );
+
+      if (
+        !Number.isFinite(price) ||
+        price < 0
+      ) {
+        setFormMessage(
+          "Please enter a valid price.",
+          "error"
+        );
+        return;
+      }
+    }
 
     state.isSaving = true;
 
-    const saveButton = getElement("saveProductButton");
+    const saveButton =
+      byId("saveProductButton");
 
-    setButtonLoading(
+    buttonLoading(
       saveButton,
       true,
-      wasEditing ? "Updating..." : "Saving..."
+      state.editingProductId
+        ? "Updating..."
+        : "Saving..."
     );
 
     setFormMessage(
-      wasEditing
+      state.editingProductId
         ? "Updating product..."
         : "Saving product...",
       "info"
     );
 
     try {
-      const supabase = createSupabaseClient();
+      const supabase =
+        createSupabase();
 
-      const uploadedUrls = await uploadSelectedImages(
-        formData.metal
-      );
+      const uploaded =
+        await uploadImages(metal);
 
-      const allImages = [
+      const images = [
         ...state.existingImages,
-        ...uploadedUrls
+        ...uploaded
       ];
 
-      const imageUrl = allImages[0] || "";
-
       const payload = {
-        name: formData.name,
-        metal: formData.metal,
-        category: formData.category,
-        price: formData.price,
-        sku: formData.sku || null,
-        material: formData.material || null,
-        description: formData.description || null,
-        image_url: imageUrl || null,
-        images: allImages,
-        is_published: formData.isPublished,
-        featured: formData.featured,
-        updated_at: new Date().toISOString()
+        name,
+        metal,
+        category,
+        price,
+        sku: sku || null,
+        material: material || null,
+        description: description || null,
+        image_url:
+          images[0] || null,
+        images,
+        is_published: published,
+        featured,
+        updated_at:
+          new Date().toISOString()
       };
 
-      let savedProduct;
+      let saved;
 
-      if (wasEditing) {
-        const { data, error } = await supabase
-          .from("products")
-          .update(payload)
-          .eq("id", state.editingProductId)
-          .select("*")
-          .single();
+      if (state.editingProductId) {
+        const { data, error } =
+          await supabase
+            .from("products")
+            .update(payload)
+            .eq(
+              "id",
+              state.editingProductId
+            )
+            .select("*")
+            .single();
 
         if (error) {
           throw error;
         }
 
-        savedProduct = normalizeProduct(data);
-
+        saved =
+          normalizeProduct(data);
       } else {
-        const { data, error } = await supabase
-          .from("products")
-          .insert(payload)
-          .select("*")
-          .single();
+        const { data, error } =
+          await supabase
+            .from("products")
+            .insert(payload)
+            .select("*")
+            .single();
 
         if (error) {
           throw error;
         }
 
-        savedProduct = normalizeProduct(data);
+        saved =
+          normalizeProduct(data);
       }
 
-      if (!savedProduct) {
+      if (!saved) {
         throw new Error(
-          "The product was saved but could not be returned."
+          "Product could not be saved."
         );
       }
 
-      if (wasEditing) {
-        const oldProduct = state.products.find(
+      const existingIndex =
+        state.products.findIndex(
           (product) =>
             String(product.id) ===
-            String(state.editingProductId)
+            String(saved.id)
         );
 
-        if (oldProduct) {
-          const removedImages = getRemovedExistingImages(
-            oldProduct,
-            state.existingImages
-          );
-
-          if (removedImages.length) {
-            await deleteStorageImages(
-              removedImages
-            );
-          }
-        }
-      }
-
-      const index = state.products.findIndex(
-        (product) =>
-          String(product.id) ===
-          String(savedProduct.id)
-      );
-
-      if (index >= 0) {
-        state.products[index] = savedProduct;
+      if (existingIndex >= 0) {
+        state.products[
+          existingIndex
+        ] = saved;
       } else {
-        state.products.unshift(savedProduct);
+        state.products.unshift(
+          saved
+        );
       }
 
       showToast(
-        wasEditing
+        state.editingProductId
           ? "Product updated successfully."
           : "Product added successfully.",
         "success"
       );
 
       resetProductForm();
+
       updateCategoryFilterOptions();
       renderDashboard();
       renderProducts();
-      showView("products");
 
+      showView("products");
     } catch (error) {
-      console.error("Product save error:", error);
+      console.error(
+        "Save product error:",
+        error
+      );
 
       setFormMessage(
         error?.message ||
-          "Unable to save the product. Please try again.",
+          "Unable to save the product.",
         "error"
       );
 
@@ -2003,47 +2180,65 @@
           "Unable to save the product.",
         "error"
       );
-
     } finally {
       state.isSaving = false;
-      setButtonLoading(saveButton, false);
+
+      buttonLoading(
+        saveButton,
+        false
+      );
     }
   }
 
   /* ==========================================================
-     IMAGE UPLOAD TO SUPABASE STORAGE
-     ========================================================== */
+     IMAGE UPLOAD
+  ========================================================== */
 
-  async function uploadSelectedImages(metal) {
-    if (!state.selectedFiles.length) {
+  async function uploadImages(metal) {
+    if (
+      !state.selectedFiles.length
+    ) {
       return [];
     }
 
-    const supabase = createSupabaseClient();
+    const supabase =
+      createSupabase();
 
-    const uploadedUrls = [];
+    const urls = [];
 
-    for (const file of state.selectedFiles) {
-      const extension = getFileExtension(file.name);
+    for (
+      const file of state.selectedFiles
+    ) {
+      const extension =
+        file.name
+          .split(".")
+          .pop()
+          .toLowerCase()
+          .replace(
+            /[^a-z0-9]/g,
+            ""
+          ) || "jpg";
 
-      const safeMetal = normalizeMetal(metal);
+      const filename =
+        `${normalizeMetal(metal)}-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 10)}.${extension}`;
 
-      const uniqueName = [
-        safeMetal,
-        Date.now(),
-        Math.random().toString(36).slice(2, 10),
-        extension
-      ].join(".");
+      const path =
+        `${normalizeMetal(metal)}/${filename}`;
 
-      const path = `${safeMetal}/${uniqueName}`;
-
-      const { error } = await supabase.storage
-        .from(CONFIG.storageBucket)
-        .upload(path, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type
-        });
+      const { error } =
+        await supabase.storage
+          .from(CONFIG.storageBucket)
+          .upload(
+            path,
+            file,
+            {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: file.type
+            }
+          );
 
       if (error) {
         throw new Error(
@@ -2051,189 +2246,97 @@
         );
       }
 
-      const {
-        data: publicData
-      } = supabase.storage
-        .from(CONFIG.storageBucket)
-        .getPublicUrl(path);
+      const { data } =
+        supabase.storage
+          .from(CONFIG.storageBucket)
+          .getPublicUrl(path);
 
-      const publicUrl = publicData?.publicUrl || "";
-
-      if (!publicUrl) {
+      if (!data?.publicUrl) {
         throw new Error(
-          `Image ${file.name} uploaded but its public URL could not be created.`
+          `Image ${file.name} uploaded but its URL could not be created.`
         );
       }
 
-      uploadedUrls.push(publicUrl);
+      urls.push(
+        data.publicUrl
+      );
     }
 
-    return uploadedUrls;
-  }
-
-  function getFileExtension(fileName) {
-    const name = String(fileName || "");
-    const lastDot = name.lastIndexOf(".");
-
-    if (lastDot === -1) {
-      return "jpg";
-    }
-
-    return name
-      .slice(lastDot + 1)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "") || "jpg";
-  }
-
-  function getRemovedExistingImages(
-    oldProduct,
-    remainingImages
-  ) {
-    const oldImages = Array.isArray(oldProduct.images)
-      ? oldProduct.images
-      : [];
-
-    const remainingSet = new Set(
-      remainingImages || []
-    );
-
-    return oldImages.filter(
-      (image) => image && !remainingSet.has(image)
-    );
+    return urls;
   }
 
   /* ==========================================================
-     STORAGE DELETE
-     ========================================================== */
+     PUBLISH
+  ========================================================== */
 
-  async function deleteStorageImages(images) {
-    if (!Array.isArray(images) || !images.length) {
-      return;
-    }
-
-    const supabase = createSupabaseClient();
-
-    const paths = images
-      .map(getStoragePathFromUrl)
-      .filter(Boolean);
-
-    if (!paths.length) {
-      return;
-    }
-
-    const { error } = await supabase.storage
-      .from(CONFIG.storageBucket)
-      .remove(paths);
-
-    if (error) {
-      console.warn(
-        "Some storage images could not be deleted:",
-        error
+  async function togglePublished(id) {
+    const product =
+      state.products.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
       );
-    }
-  }
-
-  function getStoragePathFromUrl(url) {
-    if (!url) {
-      return "";
-    }
-
-    try {
-      const parsed = new URL(url);
-
-      const marker =
-        `/storage/v1/object/public/${CONFIG.storageBucket}/`;
-
-      const markerIndex =
-        parsed.pathname.indexOf(marker);
-
-      if (markerIndex === -1) {
-        return "";
-      }
-
-      return decodeURIComponent(
-        parsed.pathname.slice(
-          markerIndex + marker.length
-        )
-      );
-    } catch (error) {
-      console.warn(
-        "Could not parse storage URL:",
-        url,
-        error
-      );
-
-      return "";
-    }
-  }
-
-  /* ==========================================================
-     PUBLISH / UNPUBLISH
-     ========================================================== */
-
-  async function togglePublished(productId) {
-    const product = state.products.find(
-      (item) =>
-        String(item.id) === String(productId)
-    );
 
     if (!product) {
-      showToast(
-        "Product could not be found.",
-        "error"
-      );
       return;
     }
 
-    const nextPublished = !product.is_published;
+    const next =
+      !product.is_published;
 
     try {
-      const supabase = createSupabaseClient();
+      const supabase =
+        createSupabase();
 
-      const { data, error } = await supabase
-        .from("products")
-        .update({
-          is_published: nextPublished,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", product.id)
-        .select("*")
-        .single();
+      const { data, error } =
+        await supabase
+          .from("products")
+          .update({
+            is_published: next,
+            updated_at:
+              new Date().toISOString()
+          })
+          .eq(
+            "id",
+            product.id
+          )
+          .select("*")
+          .single();
 
       if (error) {
         throw error;
       }
 
-      const updatedProduct = normalizeProduct(data);
+      const updated =
+        normalizeProduct(data);
 
-      const index = state.products.findIndex(
-        (item) =>
-          String(item.id) === String(product.id)
-      );
+      const index =
+        state.products.findIndex(
+          (item) =>
+            String(item.id) ===
+            String(product.id)
+        );
 
       if (index >= 0) {
-        state.products[index] = updatedProduct;
+        state.products[index] =
+          updated;
       }
 
       renderProducts();
       renderDashboard();
 
       showToast(
-        nextPublished
+        next
           ? "Product published."
-          : "Product unpublished.",
+          : "Product hidden.",
         "success"
       );
-
     } catch (error) {
-      console.error(
-        "Publish toggle error:",
-        error
-      );
+      console.error(error);
 
       showToast(
         error?.message ||
-          "Unable to update product status.",
+          "Unable to update product.",
         "error"
       );
     }
@@ -2241,101 +2344,115 @@
 
   /* ==========================================================
      DELETE
-     ========================================================== */
+  ========================================================== */
 
-  function openDeleteModal(productId) {
-    const product = state.products.find(
-      (item) =>
-        String(item.id) === String(productId)
-    );
+  function openDeleteModal(id) {
+    const product =
+      state.products.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
+      );
 
     if (!product) {
-      showToast(
-        "Product could not be found.",
-        "error"
-      );
       return;
     }
 
-    state.pendingDeleteProduct = product;
+    state.pendingDeleteProduct =
+      product;
 
-    const modal = getElement("confirmModal");
-    const title = getElement("confirmModalTitle");
-    const text = getElement("confirmModalText");
+    const modal =
+      byId("confirmModal");
+
+    const title =
+      byId("confirmModalTitle");
+
+    const text =
+      byId("confirmModalText");
 
     if (title) {
-      title.textContent = "Delete Product";
+      title.textContent =
+        "Delete Product?";
     }
 
     if (text) {
       text.textContent =
-        `Are you sure you want to delete "${product.name}"? ` +
-        "This action cannot be undone.";
+        `Delete "${product.name}"? This cannot be undone.`;
     }
 
     if (modal) {
-      modal.classList.add("active");
-      modal.setAttribute("aria-hidden", "false");
+      modal.hidden = false;
+      modal.classList.add(
+        "active"
+      );
+
+      modal.setAttribute(
+        "aria-hidden",
+        "false"
+      );
     }
   }
 
   function closeDeleteModal() {
-    const modal = getElement("confirmModal");
+    const modal =
+      byId("confirmModal");
 
-    state.pendingDeleteProduct = null;
+    state.pendingDeleteProduct =
+      null;
 
     if (modal) {
-      modal.classList.remove("active");
-      modal.setAttribute("aria-hidden", "true");
+      modal.hidden = true;
+      modal.classList.remove(
+        "active"
+      );
+
+      modal.setAttribute(
+        "aria-hidden",
+        "true"
+      );
     }
   }
 
   async function confirmDelete() {
-    const product = state.pendingDeleteProduct;
+    const product =
+      state.pendingDeleteProduct;
 
     if (!product) {
-      closeDeleteModal();
       return;
     }
 
-    const deleteButton = getElement(
-      "confirmDeleteButton"
-    );
+    const button =
+      byId("confirmDeleteButton");
 
-    setButtonLoading(
-      deleteButton,
+    buttonLoading(
+      button,
       true,
       "Deleting..."
     );
 
     try {
-      const supabase = createSupabaseClient();
+      const supabase =
+        createSupabase();
 
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", product.id);
+      const { error } =
+        await supabase
+          .from("products")
+          .delete()
+          .eq(
+            "id",
+            product.id
+          );
 
       if (error) {
         throw error;
       }
 
-      if (Array.isArray(product.images)) {
-        await deleteStorageImages(
-          product.images
+      state.products =
+        state.products.filter(
+          (item) =>
+            String(item.id) !==
+            String(product.id)
         );
-      }
-
-      if (product.image_url) {
-        await deleteStorageImages([
-          product.image_url
-        ]);
-      }
-
-      state.products = state.products.filter(
-        (item) =>
-          String(item.id) !== String(product.id)
-      );
 
       closeDeleteModal();
 
@@ -2346,158 +2463,178 @@
         "Product deleted successfully.",
         "success"
       );
-
     } catch (error) {
-      console.error(
-        "Delete product error:",
-        error
-      );
+      console.error(error);
 
       showToast(
         error?.message ||
-          "Unable to delete the product.",
+          "Unable to delete product.",
         "error"
       );
-
     } finally {
-      setButtonLoading(
-        deleteButton,
+      buttonLoading(
+        button,
         false
       );
     }
   }
 
-  /* ==========================================================
-     MODALS
-     ========================================================== */
-
   function bindModalControls() {
-    const closeButton = getElement("confirmModalClose");
+    $$("[data-close-confirm]")
+      .forEach((element) => {
+        if (
+          element.dataset.bound === "true"
+        ) {
+          return;
+        }
+
+        element.dataset.bound = "true";
+
+        element.addEventListener(
+          "click",
+          closeDeleteModal
+        );
+      });
+
+    const confirm =
+      byId("confirmDeleteButton");
 
     if (
-      closeButton &&
-      closeButton.dataset.bound !== "true"
+      confirm &&
+      confirm.dataset.bound !== "true"
     ) {
-      closeButton.dataset.bound = "true";
-      closeButton.addEventListener(
-        "click",
-        closeDeleteModal
-      );
-    }
+      confirm.dataset.bound = "true";
 
-    const backdrop = $(
-      ".admin-modal-backdrop"
-    );
-
-    if (
-      backdrop &&
-      backdrop.dataset.bound !== "true"
-    ) {
-      backdrop.dataset.bound = "true";
-      backdrop.addEventListener(
-        "click",
-        closeDeleteModal
-      );
-    }
-
-    const cancelButton = getElement(
-      "cancelDeleteButton"
-    );
-
-    if (
-      cancelButton &&
-      cancelButton.dataset.bound !== "true"
-    ) {
-      cancelButton.dataset.bound = "true";
-      cancelButton.addEventListener(
-        "click",
-        closeDeleteModal
-      );
-    }
-
-    const confirmButton = getElement(
-      "confirmDeleteButton"
-    );
-
-    if (
-      confirmButton &&
-      confirmButton.dataset.bound !== "true"
-    ) {
-      confirmButton.dataset.bound = "true";
-      confirmButton.addEventListener(
+      confirm.addEventListener(
         "click",
         confirmDelete
       );
     }
+  }
 
-    document.addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key === "Escape") {
-          closeDeleteModal();
-          closeMobileSidebar();
-        }
-      }
+  /* ==========================================================
+     INITIALIZATION
+  ========================================================== */
+
+  async function initializeAdmin(
+    session
+  ) {
+    state.session = session;
+
+    showAdminApp();
+
+    const email =
+      byId("adminUserEmail");
+
+    if (email) {
+      email.textContent =
+        session?.user?.email || "";
+    }
+
+    bindNavigation();
+    bindMetalControls();
+    bindProductControls();
+    bindFormControls();
+    bindModalControls();
+
+    setMetalMode(
+      state.metalMode,
+      false
+    );
+
+    resetProductForm();
+
+    await loadProducts();
+
+    showView(
+      state.currentView
     );
   }
 
-  /* ==========================================================
-     WINDOW RESIZE
-     ========================================================== */
-
-  function bindResizeHandling() {
-    window.addEventListener("resize", () => {
-      if (window.innerWidth > 900) {
-        closeMobileSidebar();
-      }
-    });
-  }
-
-  /* ==========================================================
-     PUBLIC API
-     ========================================================== */
-
-  window.KrishnaJewellersAdmin = {
-    refreshProducts: loadProducts,
-
-    getProducts: function () {
-      return [...state.products];
-    },
-
-    getCurrentMetal: function () {
-      return state.metalMode;
-    },
-
-    setMetal: function (metal) {
-      setMetalMode(metal, true);
-    },
-
-    openAddProduct: function () {
-      startNewProduct();
-    },
-
-    editProduct: function (productId) {
-      editProduct(productId);
-    },
-
-    logout: handleLogout
-  };
-
-  /* ==========================================================
-     START
-     ========================================================== */
-
-  document.addEventListener("DOMContentLoaded", async () => {
+  async function initializeAuth() {
     try {
-      bindResizeHandling();
-      await initializeAuth();
+      const supabase =
+        createSupabase();
+
+      showLoginScreen();
+
+      const {
+        data: {
+          session
+        }
+      } =
+        await supabase.auth.getSession();
+
+      if (session?.user) {
+        const admin =
+          await verifyAdmin(
+            session.user.id
+          );
+
+        if (admin) {
+          await initializeAdmin(
+            session
+          );
+          return;
+        }
+
+        await supabase.auth.signOut();
+      }
+
+      supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (
+            event === "SIGNED_OUT"
+          ) {
+            state.session = null;
+            showLoginScreen();
+            return;
+          }
+
+          if (
+            event === "SIGNED_IN" &&
+            session?.user
+          ) {
+            try {
+              const admin =
+                await verifyAdmin(
+                  session.user.id
+                );
+
+              if (!admin) {
+                await supabase.auth.signOut();
+
+                setLoginMessage(
+                  "This account does not have administrator access.",
+                  "error"
+                );
+
+                return;
+              }
+
+              await initializeAdmin(
+                session
+              );
+            } catch (error) {
+              console.error(
+                "Authentication verification error:",
+                error
+              );
+
+              setLoginMessage(
+                error?.message ||
+                  "Unable to verify administrator access.",
+                "error"
+              );
+            }
+          }
+        }
+      );
     } catch (error) {
       console.error(
         "Admin initialization error:",
         error
       );
-
-      showLoginScreen();
 
       setLoginMessage(
         error?.message ||
@@ -2505,5 +2642,64 @@
         "error"
       );
     }
-  });
+  }
+
+  /* ==========================================================
+     GLOBAL EVENTS
+  ========================================================== */
+
+  function bindGlobalEvents() {
+    const loginForm =
+      byId("loginForm");
+
+    if (
+      loginForm &&
+      loginForm.dataset.bound !== "true"
+    ) {
+      loginForm.dataset.bound = "true";
+
+      loginForm.addEventListener(
+        "submit",
+        login
+      );
+    }
+
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key === "Escape"
+        ) {
+          closeDeleteModal();
+          closeMobileMenu();
+        }
+      }
+    );
+
+    window.addEventListener(
+      "resize",
+      () => {
+        if (
+          window.innerWidth > 900
+        ) {
+          closeMobileMenu();
+        }
+      }
+    );
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      if (state.initialized) {
+        return;
+      }
+
+      state.initialized = true;
+
+      bindGlobalEvents();
+
+      initializeAuth();
+    }
+  );
 })();
