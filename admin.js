@@ -1,1455 +1,1627 @@
 "use strict";
 
 /*
- * Krishna Jewellers — Admin Dashboard
- *
- * Supabase features:
- * - Email/password authentication
- * - Admin verification
- * - Product CRUD
- * - Image upload to Storage
- * - Multiple product photos
- * - Publish / hide products
- * - Featured products
- * - Product search and filtering
- * - Product deletion
+ * ============================================================
+ * KRISHNA JEWELLERS — ADMIN PANEL
+ * Gold + Silver Product Management
+ * ============================================================
  */
 
 (function () {
-  const CONFIG = window.KRISHNA_SUPABASE || {};
+  const CONFIG = {
+    storageBucket: "jewellery",
+    maxImageSize: 6 * 1024 * 1024,
+    allowedImageTypes: ["image/jpeg", "image/png", "image/webp"],
+    defaultMetal: "gold"
+  };
 
-  const SUPABASE_URL = String(CONFIG.url || "").trim();
-  const SUPABASE_KEY = String(CONFIG.key || "").trim();
+  const CATEGORY_SETS = {
+    gold: [
+      { value: "ladies-rings", label: "Ladies Rings" },
+      { value: "gents-rings", label: "Gents Rings" },
+      { value: "necklaces", label: "Necklaces" },
+      { value: "earrings", label: "Earrings" },
+      { value: "ladies-chains", label: "Ladies Chains" },
+      { value: "gents-chains", label: "Gents Chains" },
+      { value: "single-locket", label: "Single Locket" },
+      { value: "double-locket", label: "Double Locket" },
+      { value: "other", label: "Other" }
+    ],
 
-  const STORAGE_BUCKET = "jewellery";
-  const MAX_FILE_SIZE = 6 * 1024 * 1024;
+    silver: [
+      { value: "kids-payal", label: "Kids Payal" },
+      { value: "adult-payal", label: "Adult Payal" },
+      { value: "lockets", label: "Lockets" },
+      { value: "male-bracelets", label: "Male Bracelets" },
+      { value: "female-bracelets", label: "Female Bracelets" },
+      { value: "male-chains", label: "Male Chains" },
+      { value: "female-chains", label: "Female Chains" },
+      { value: "other", label: "Other" }
+    ]
+  };
 
-  const ALLOWED_TYPES = [
-    "image/jpeg",
-    "image/png",
-    "image/webp"
-  ];
+  const state = {
+    supabase: null,
+    session: null,
+    products: [],
+    currentView: "dashboard",
+    metalMode: CONFIG.defaultMetal,
+    productMetalFilter: "all",
+    productSearch: "",
+    productCategoryFilter: "all",
+    productStatusFilter: "all",
+    editingProductId: null,
+    pendingDeleteProduct: null,
+    selectedFiles: [],
+    existingImages: [],
+    isSaving: false,
+    toastTimer: null
+  };
 
-  let supabaseClient = null;
-  let currentUser = null;
+  const $ = (selector, parent = document) => parent.querySelector(selector);
 
-  let allProducts = [];
-  let filteredProducts = [];
+  const $$ = (selector, parent = document) =>
+    Array.from(parent.querySelectorAll(selector));
 
-  let selectedFiles = [];
-  let existingImages = [];
-
-  let editingProductId = null;
-
-  let deleteTargetId = null;
-
-  let toastTimer = null;
-
-  const elements = {};
-
-  document.addEventListener("DOMContentLoaded", init);
-
-  async function init() {
-    cacheElements();
-    setupEvents();
-
-    initializeSupabase();
-
-    if (!supabaseClient) {
-      showLoginScreen();
-      setLoginMessage(
-        "Supabase configuration is missing. Check supabase-config.js.",
-        "error"
-      );
-      return;
-    }
-
-    await checkExistingSession();
+  function getElement(id) {
+    return document.getElementById(id);
   }
 
-  function cacheElements() {
-    elements.loginScreen = document.getElementById("loginScreen");
-    elements.adminApp = document.getElementById("adminApp");
-
-    elements.loginForm = document.getElementById("loginForm");
-    elements.loginEmail = document.getElementById("loginEmail");
-    elements.loginPassword = document.getElementById("loginPassword");
-    elements.loginButton = document.getElementById("loginButton");
-    elements.loginMessage = document.getElementById("loginMessage");
-    elements.togglePassword =
-      document.getElementById("togglePassword");
-
-    elements.adminEmail = document.getElementById("adminEmail");
-    elements.logoutButton = document.getElementById("logoutButton");
-
-    elements.sidebar = document.getElementById("sidebar");
-    elements.sidebarOpen = document.getElementById("sidebarOpen");
-    elements.sidebarClose = document.getElementById("sidebarClose");
-    elements.sidebarOverlay =
-      document.getElementById("sidebarOverlay");
-
-    elements.pageTitle = document.getElementById("pageTitle");
-
-    elements.productsView =
-      document.getElementById("productsView");
-
-    elements.addProductView =
-      document.getElementById("addProductView");
-
-    elements.totalProducts =
-      document.getElementById("totalProducts");
-
-    elements.publishedProducts =
-      document.getElementById("publishedProducts");
-
-    elements.hiddenProducts =
-      document.getElementById("hiddenProducts");
-
-    elements.categoryCount =
-      document.getElementById("categoryCount");
-
-    elements.adminSearch =
-      document.getElementById("adminSearch");
-
-    elements.adminCategoryFilter =
-      document.getElementById("adminCategoryFilter");
-
-    elements.adminStatusFilter =
-      document.getElementById("adminStatusFilter");
-
-    elements.productTableBody =
-      document.getElementById("productTableBody");
-
-    elements.adminEmptyState =
-      document.getElementById("adminEmptyState");
-
-    elements.topAddProductButton =
-      document.getElementById("topAddProductButton");
-
-    elements.panelAddProductButton =
-      document.getElementById("panelAddProductButton");
-
-    elements.emptyAddProductButton =
-      document.getElementById("emptyAddProductButton");
-
-    elements.backToProducts =
-      document.getElementById("backToProducts");
-
-    elements.cancelEditorButton =
-      document.getElementById("cancelEditorButton");
-
-    elements.productForm =
-      document.getElementById("productForm");
-
-    elements.productId =
-      document.getElementById("productId");
-
-    elements.editorTitle =
-      document.getElementById("editorTitle");
-
-    elements.productName =
-      document.getElementById("productName");
-
-    elements.productCategory =
-      document.getElementById("productCategory");
-
-    elements.productPrice =
-      document.getElementById("productPrice");
-
-    elements.productMaterial =
-      document.getElementById("productMaterial");
-
-    elements.productSku =
-      document.getElementById("productSku");
-
-    elements.productDescription =
-      document.getElementById("productDescription");
-
-    elements.descriptionCount =
-      document.getElementById("descriptionCount");
-
-    elements.productPublished =
-      document.getElementById("productPublished");
-
-    elements.productFeatured =
-      document.getElementById("productFeatured");
-
-    elements.productImages =
-      document.getElementById("productImages");
-
-    elements.uploadZone =
-      document.getElementById("uploadZone");
-
-    elements.chooseImagesButton =
-      document.getElementById("chooseImagesButton");
-
-    elements.imagePreviewGrid =
-      document.getElementById("imagePreviewGrid");
-
-    elements.uploadMessage =
-      document.getElementById("uploadMessage");
-
-    elements.saveProductButton =
-      document.getElementById("saveProductButton");
-
-    elements.productFormMessage =
-      document.getElementById("productFormMessage");
-
-    elements.confirmModal =
-      document.getElementById("confirmModal");
-
-    elements.confirmMessage =
-      document.getElementById("confirmMessage");
-
-    elements.confirmCancel =
-      document.getElementById("confirmCancel");
-
-    elements.confirmDelete =
-      document.getElementById("confirmDelete");
-
-    elements.adminToast =
-      document.getElementById("adminToast");
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
-  function setupEvents() {
-    if (elements.loginForm) {
-      elements.loginForm.addEventListener(
-        "submit",
-        handleLogin
+  function normalizeMetal(value) {
+    const metal = String(value || "").trim().toLowerCase();
+
+    return metal === "silver" ? "silver" : "gold";
+  }
+
+  function normalizeCategory(category, metal) {
+    const value = String(category || "")
+      .trim()
+      .toLowerCase()
+      .replace(/_/g, "-")
+      .replace(/\s+/g, "-");
+
+    const normalizedMetal = normalizeMetal(metal);
+
+    if (normalizedMetal === "gold") {
+      const aliases = {
+        ring: "ladies-rings",
+        rings: "ladies-rings",
+        "ladies-ring": "ladies-rings",
+        "ladies-rings": "ladies-rings",
+        "gents-ring": "gents-rings",
+        "gents-rings": "gents-rings",
+
+        necklace: "necklaces",
+        necklaces: "necklaces",
+
+        earring: "earrings",
+        earrings: "earrings",
+
+        chain: "gents-chains",
+        chains: "gents-chains",
+        "ladies-chain": "ladies-chains",
+        "ladies-chains": "ladies-chains",
+        "gents-chain": "gents-chains",
+        "gents-chains": "gents-chains",
+        "male-chain": "gents-chains",
+        "male-chains": "gents-chains",
+        "female-chain": "ladies-chains",
+        "female-chains": "ladies-chains",
+
+        locket: "single-locket",
+        lockets: "single-locket",
+        "single-locket": "single-locket",
+        "double-locket": "double-locket",
+
+        bangle: "other",
+        bangles: "other",
+        bracelet: "other",
+        bracelets: "other",
+        other: "other"
+      };
+
+      return aliases[value] || "other";
+    }
+
+    const aliases = {
+      payal: "adult-payal",
+      "kids-payal": "kids-payal",
+      "kid-payal": "kids-payal",
+      "adult-payal": "adult-payal",
+
+      locket: "lockets",
+      lockets: "lockets",
+
+      bracelet: "male-bracelets",
+      bracelets: "male-bracelets",
+      "male-bracelet": "male-bracelets",
+      "male-bracelets": "male-bracelets",
+      "female-bracelet": "female-bracelets",
+      "female-bracelets": "female-bracelets",
+
+      chain: "male-chains",
+      chains: "male-chains",
+      "male-chain": "male-chains",
+      "male-chains": "male-chains",
+      "female-chain": "female-chains",
+      "female-chains": "female-chains",
+
+      other: "other"
+    };
+
+    return aliases[value] || "other";
+  }
+
+  function formatCategory(category) {
+    const allCategories = [
+      ...CATEGORY_SETS.gold,
+      ...CATEGORY_SETS.silver
+    ];
+
+    const found = allCategories.find((item) => item.value === category);
+
+    if (found) {
+      return found.label;
+    }
+
+    return String(category || "Other")
+      .replace(/[-_]/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  function formatMetal(metal) {
+    return normalizeMetal(metal) === "silver" ? "Silver" : "Gold";
+  }
+
+  function formatPrice(price) {
+    const numericPrice = Number(price);
+
+    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+      return "Price on enquiry";
+    }
+
+    return `₹${numericPrice.toLocaleString("en-IN")}`;
+  }
+
+  function formatDate(value) {
+    if (!value) {
+      return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "—";
+    }
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  }
+
+  function getCategorySet(metal = state.metalMode) {
+    return CATEGORY_SETS[normalizeMetal(metal)];
+  }
+
+  function getCategoryLabel(metal, category) {
+    const categories = getCategorySet(metal);
+    const found = categories.find((item) => item.value === category);
+
+    return found ? found.label : formatCategory(category);
+  }
+
+  function normalizeProduct(product) {
+    const metal = normalizeMetal(product?.metal);
+
+    return {
+      ...product,
+      metal,
+      category: normalizeCategory(product?.category, metal),
+      name: String(product?.name || "Unnamed Product"),
+      description: String(product?.description || ""),
+      material: String(product?.material || ""),
+      sku: String(product?.sku || ""),
+      image_url: String(product?.image_url || ""),
+      images: Array.isArray(product?.images)
+        ? product.images.filter(Boolean)
+        : [],
+      is_published: Boolean(product?.is_published),
+      featured: Boolean(product?.featured)
+    };
+  }
+
+  /* ==========================================================
+     SUPABASE
+     ========================================================== */
+
+  function getSupabaseConfig() {
+    const config = window.KRISHNA_SUPABASE;
+
+    if (!config || !config.url || !config.key) {
+      throw new Error(
+        "Supabase configuration is missing. Please check supabase-config.js."
       );
     }
 
-    if (elements.togglePassword) {
-      elements.togglePassword.addEventListener(
-        "click",
-        togglePassword
+    return config;
+  }
+
+  function createSupabaseClient() {
+    if (state.supabase) {
+      return state.supabase;
+    }
+
+    if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      throw new Error(
+        "Supabase library could not be loaded. Please check the internet connection and admin.html."
       );
     }
 
-    if (elements.logoutButton) {
-      elements.logoutButton.addEventListener(
-        "click",
-        handleLogout
-      );
-    }
+    const config = getSupabaseConfig();
 
-    if (elements.sidebarOpen) {
-      elements.sidebarOpen.addEventListener(
-        "click",
-        openSidebar
-      );
-    }
-
-    if (elements.sidebarClose) {
-      elements.sidebarClose.addEventListener(
-        "click",
-        closeSidebar
-      );
-    }
-
-    if (elements.sidebarOverlay) {
-      elements.sidebarOverlay.addEventListener(
-        "click",
-        closeSidebar
-      );
-    }
-
-    document
-      .querySelectorAll("[data-view]")
-      .forEach(function (button) {
-        button.addEventListener("click", function () {
-          switchView(button.dataset.view);
-        });
-      });
-
-    if (elements.topAddProductButton) {
-      elements.topAddProductButton.addEventListener(
-        "click",
-        startAddProduct
-      );
-    }
-
-    if (elements.panelAddProductButton) {
-      elements.panelAddProductButton.addEventListener(
-        "click",
-        startAddProduct
-      );
-    }
-
-    if (elements.emptyAddProductButton) {
-      elements.emptyAddProductButton.addEventListener(
-        "click",
-        startAddProduct
-      );
-    }
-
-    if (elements.backToProducts) {
-      elements.backToProducts.addEventListener(
-        "click",
-        showProducts
-      );
-    }
-
-    if (elements.cancelEditorButton) {
-      elements.cancelEditorButton.addEventListener(
-        "click",
-        showProducts
-      );
-    }
-
-    if (elements.productForm) {
-      elements.productForm.addEventListener(
-        "submit",
-        handleProductSubmit
-      );
-    }
-
-    if (elements.productImages) {
-      elements.productImages.addEventListener(
-        "change",
-        handleFileSelection
-      );
-    }
-
-    if (elements.chooseImagesButton) {
-      elements.chooseImagesButton.addEventListener(
-        "click",
-        function () {
-          elements.productImages.click();
-        }
-      );
-    }
-
-    if (elements.uploadZone) {
-      setupDragAndDrop();
-    }
-
-    if (elements.imagePreviewGrid) {
-      elements.imagePreviewGrid.addEventListener(
-        "click",
-        handleImagePreviewClick
-      );
-    }
-
-    if (elements.descriptionCount) {
-      updateDescriptionCount();
-    }
-
-    if (elements.productDescription) {
-      elements.productDescription.addEventListener(
-        "input",
-        updateDescriptionCount
-      );
-    }
-
-    if (elements.adminSearch) {
-      elements.adminSearch.addEventListener(
-        "input",
-        debounce(function () {
-          applyAdminFilters();
-        }, 180)
-      );
-    }
-
-    if (elements.adminCategoryFilter) {
-      elements.adminCategoryFilter.addEventListener(
-        "change",
-        applyAdminFilters
-      );
-    }
-
-    if (elements.adminStatusFilter) {
-      elements.adminStatusFilter.addEventListener(
-        "change",
-        applyAdminFilters
-      );
-    }
-
-    if (elements.productTableBody) {
-      elements.productTableBody.addEventListener(
-        "click",
-        handleTableAction
-      );
-    }
-
-    if (elements.confirmCancel) {
-      elements.confirmCancel.addEventListener(
-        "click",
-        closeConfirmModal
-      );
-    }
-
-    if (elements.confirmDelete) {
-      elements.confirmDelete.addEventListener(
-        "click",
-        confirmDeleteProduct
-      );
-    }
-
-    if (elements.confirmModal) {
-      const backdrop =
-        elements.confirmModal.querySelector(
-          ".admin-modal-backdrop"
-        );
-
-      if (backdrop) {
-        backdrop.addEventListener(
-          "click",
-          closeConfirmModal
-        );
-      }
-    }
-
-    document.addEventListener(
-      "keydown",
-      function (event) {
-        if (event.key === "Escape") {
-          closeConfirmModal();
-          closeSidebar();
+    state.supabase = window.supabase.createClient(
+      config.url,
+      config.key,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
         }
       }
     );
+
+    return state.supabase;
   }
 
-  function initializeSupabase() {
-    if (
-      !SUPABASE_URL ||
-      !SUPABASE_KEY ||
-      SUPABASE_URL.includes("YOUR_SUPABASE") ||
-      SUPABASE_KEY.includes("YOUR_SUPABASE")
-    ) {
+  /* ==========================================================
+     UI HELPERS
+     ========================================================== */
+
+  function showLoginScreen() {
+    const loginScreen = getElement("loginScreen");
+    const adminApp = getElement("adminApp");
+
+    if (loginScreen) {
+      loginScreen.style.display = "flex";
+    }
+
+    if (adminApp) {
+      adminApp.classList.add("is-hidden");
+      adminApp.style.display = "none";
+    }
+  }
+
+  function showAdminApp() {
+    const loginScreen = getElement("loginScreen");
+    const adminApp = getElement("adminApp");
+
+    if (loginScreen) {
+      loginScreen.style.display = "none";
+    }
+
+    if (adminApp) {
+      adminApp.classList.remove("is-hidden");
+      adminApp.style.display = "";
+    }
+  }
+
+  function setLoginMessage(message, type = "info") {
+    const element = getElement("loginMessage");
+
+    if (!element) {
       return;
     }
 
-    if (
-      !window.supabase ||
-      typeof window.supabase.createClient !== "function"
-    ) {
+    element.textContent = message || "";
+    element.className = `form-message ${type}`;
+  }
+
+  function setFormMessage(message, type = "info") {
+    const element = getElement("productFormMessage");
+
+    if (!element) {
       return;
     }
 
-    try {
-      supabaseClient =
-        window.supabase.createClient(
-          SUPABASE_URL,
-          SUPABASE_KEY
-        );
-    } catch (error) {
-      console.error(
-        "Supabase initialization failed:",
-        error
-      );
+    element.textContent = message || "";
+    element.className = `form-message ${type}`;
+  }
+
+  function clearFormMessage() {
+    setFormMessage("");
+  }
+
+  function showToast(message, type = "success") {
+    const toast = getElement("adminToast");
+    const toastMessage = getElement("adminToastMessage");
+
+    if (!toast || !toastMessage) {
+      return;
+    }
+
+    toastMessage.textContent = message || "";
+
+    toast.classList.remove("success", "error", "warning", "show");
+    toast.classList.add(type);
+
+    requestAnimationFrame(() => {
+      toast.classList.add("show");
+    });
+
+    if (state.toastTimer) {
+      clearTimeout(state.toastTimer);
+    }
+
+    state.toastTimer = window.setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3200);
+  }
+
+  function setButtonLoading(button, loading, loadingText = "Saving...") {
+    if (!button) {
+      return;
+    }
+
+    if (loading) {
+      if (!button.dataset.originalText) {
+        button.dataset.originalText = button.textContent.trim();
+      }
+
+      button.disabled = true;
+      button.textContent = loadingText;
+    } else {
+      button.disabled = false;
+
+      if (button.dataset.originalText) {
+        button.textContent = button.dataset.originalText;
+        delete button.dataset.originalText;
+      }
     }
   }
 
-  async function checkExistingSession() {
-    try {
-      const {
-        data: { session },
-        error
-      } = await supabaseClient.auth.getSession();
+  /* ==========================================================
+     AUTHENTICATION
+     ========================================================== */
 
-      if (error) {
-        throw error;
-      }
-
-      if (!session || !session.user) {
-        showLoginScreen();
-        return;
-      }
-
-      const isAdmin =
-        await verifyAdmin(session.user.id);
-
-      if (!isAdmin) {
-        await supabaseClient.auth.signOut();
-
-        showLoginScreen();
-
-        setLoginMessage(
-          "This account is not authorized to access the admin panel.",
-          "error"
-        );
-
-        return;
-      }
-
-      currentUser = session.user;
-
-      showAdminApp();
-
-      await loadProducts();
-    } catch (error) {
-      console.error(
-        "Session check failed:",
-        error
-      );
-
-      showLoginScreen();
-
-      setLoginMessage(
-        getErrorMessage(error),
-        "error"
-      );
-    }
-
-    supabaseClient.auth.onAuthStateChange(
-      function (event, session) {
-        if (event === "SIGNED_OUT") {
-          currentUser = null;
-          showLoginScreen();
-        }
-      }
-    );
-  }
-
-  async function verifyAdmin(userId) {
+  async function checkAdminUser(userId) {
     if (!userId) {
       return false;
     }
 
-    try {
-      const { data, error } =
-        await supabaseClient
-          .from("admin_users")
-          .select("user_id")
-          .eq("user_id", userId)
-          .maybeSingle();
+    const supabase = createSupabaseClient();
 
-      if (error) {
-        console.error(
-          "Admin verification error:",
-          error
-        );
+    const { data, error } = await supabase
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-        return false;
-      }
-
-      return Boolean(data);
-    } catch (error) {
-      console.error(
-        "Admin verification failed:",
-        error
-      );
-
-      return false;
+    if (error) {
+      console.error("Admin verification error:", error);
+      throw error;
     }
+
+    return Boolean(data);
   }
 
   async function handleLogin(event) {
     event.preventDefault();
 
-    if (!supabaseClient) {
-      setLoginMessage(
-        "Supabase is not configured correctly.",
-        "error"
-      );
+    const emailInput = getElement("loginEmail");
+    const passwordInput = getElement("loginPassword");
+    const submitButton = getElement("loginButton");
 
-      return;
-    }
-
-    const email = String(
-      elements.loginEmail?.value || ""
-    ).trim();
-
-    const password = String(
-      elements.loginPassword?.value || ""
-    );
+    const email = String(emailInput?.value || "").trim();
+    const password = String(passwordInput?.value || "");
 
     if (!email || !password) {
-      setLoginMessage(
-        "Please enter your email and password.",
-        "error"
-      );
-
+      setLoginMessage("Please enter your email and password.", "error");
       return;
     }
 
-    setLoginLoading(true);
+    const supabase = createSupabaseClient();
+
+    setButtonLoading(submitButton, true, "Signing in...");
+    setLoginMessage("Signing in...", "info");
 
     try {
-      const { data, error } =
-        await supabaseClient.auth.signInWithPassword({
-          email,
-          password
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
       if (error) {
         throw error;
       }
 
-      if (!data.user) {
-        throw new Error(
-          "Login was unsuccessful."
-        );
+      if (!data?.user) {
+        throw new Error("Login succeeded but no user was returned.");
       }
 
-      const isAdmin =
-        await verifyAdmin(data.user.id);
+      const isAdmin = await checkAdminUser(data.user.id);
 
       if (!isAdmin) {
-        await supabaseClient.auth.signOut();
-
+        await supabase.auth.signOut();
         throw new Error(
-          "This account is not authorized as an admin."
+          "This account does not have administrator access."
         );
       }
 
-      currentUser = data.user;
+      state.session = data.session;
 
-      clearLoginMessage();
+      setLoginMessage("Login successful. Loading admin panel...", "success");
 
-      showAdminApp();
+      await initializeAdmin(data.session);
 
-      await loadProducts();
-
-      showToast(
-        "Welcome to the Krishna Jewellers admin panel.",
-        "success"
-      );
     } catch (error) {
-      console.error(
-        "Login failed:",
-        error
-      );
+      console.error("Login error:", error);
 
       setLoginMessage(
-        getErrorMessage(error),
+        error?.message || "Unable to sign in. Please check your details.",
         "error"
       );
     } finally {
-      setLoginLoading(false);
+      setButtonLoading(submitButton, false);
     }
   }
 
   async function handleLogout() {
-    if (!supabaseClient) {
-      return;
-    }
-
     try {
-      await supabaseClient.auth.signOut();
+      const supabase = createSupabaseClient();
 
-      currentUser = null;
+      await supabase.auth.signOut();
+
+      state.session = null;
+      state.products = [];
 
       showLoginScreen();
+      closeMobileSidebar();
 
-      resetEditor();
+      setLoginMessage("You have been signed out.", "success");
 
-      showToast(
-        "You have been signed out.",
-        "success"
-      );
     } catch (error) {
-      console.error(
-        "Logout failed:",
-        error
-      );
-
-      showToast(
-        getErrorMessage(error),
-        "error"
-      );
+      console.error("Logout error:", error);
+      showToast("Unable to sign out completely.", "error");
     }
   }
 
-  function showLoginScreen() {
-    if (elements.loginScreen) {
-      elements.loginScreen.hidden = false;
-    }
+  async function initializeAuth() {
+    const supabase = createSupabaseClient();
 
-    if (elements.adminApp) {
-      elements.adminApp.hidden = true;
-    }
+    showLoginScreen();
 
-    document.body.classList.remove(
-      "admin-authenticated"
-    );
-  }
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
 
-  function showAdminApp() {
-    if (elements.loginScreen) {
-      elements.loginScreen.hidden = true;
-    }
-
-    if (elements.adminApp) {
-      elements.adminApp.hidden = false;
-    }
-
-    document.body.classList.add(
-      "admin-authenticated"
-    );
-
-    if (elements.adminEmail && currentUser) {
-      elements.adminEmail.textContent =
-        currentUser.email || "Admin";
-    }
-
-    switchView("products");
-  }
-
-  function setLoginLoading(isLoading) {
-    if (!elements.loginButton) {
-      return;
-    }
-
-    elements.loginButton.disabled = isLoading;
-
-    elements.loginButton.textContent =
-      isLoading ? "Signing In..." : "Sign In";
-  }
-
-  function setLoginMessage(message, type) {
-    if (!elements.loginMessage) {
-      return;
-    }
-
-    elements.loginMessage.textContent =
-      message || "";
-
-    elements.loginMessage.className =
-      "form-message";
-
-    if (type) {
-      elements.loginMessage.classList.add(type);
-    }
-  }
-
-  function clearLoginMessage() {
-    setLoginMessage("", "");
-  }
-
-  function togglePassword() {
-    if (!elements.loginPassword) {
-      return;
-    }
-
-    const isPassword =
-      elements.loginPassword.type === "password";
-
-    elements.loginPassword.type =
-      isPassword ? "text" : "password";
-
-    if (elements.togglePassword) {
-      elements.togglePassword.textContent =
-        isPassword ? "Hide" : "Show";
-
-      elements.togglePassword.setAttribute(
-        "aria-label",
-        isPassword
-          ? "Hide password"
-          : "Show password"
-      );
-    }
-  }
-
-  async function loadProducts() {
-    if (!supabaseClient) {
-      return;
-    }
-
-    showTableLoading();
-
-    try {
-      const { data, error } =
-        await supabaseClient
-          .from("products")
-          .select("*")
-          .order("created_at", {
-            ascending: false
-          });
-
-      if (error) {
-        throw error;
-      }
-
-      allProducts = Array.isArray(data)
-        ? data.map(normalizeProduct)
-        : [];
-
-      updateStats();
-
-      applyAdminFilters();
-    } catch (error) {
-      console.error(
-        "Could not load products:",
-        error
-      );
-
-      showTableError(
-        getErrorMessage(error)
-      );
-
-      showToast(
-        "Could not load products.",
-        "error"
-      );
-    }
-  }
-
-  function normalizeProduct(product) {
-    const item = product || {};
-
-    let images = [];
-
-    if (Array.isArray(item.images)) {
-      images = item.images
-        .map(function (image) {
-          if (typeof image === "string") {
-            return image;
-          }
-
-          if (image && typeof image === "object") {
-            return {
-              url:
-                image.url ||
-                image.publicUrl ||
-                "",
-              path:
-                image.path ||
-                ""
-            };
-          }
-
-          return null;
-        })
-        .filter(Boolean);
-    } else if (typeof item.images === "string") {
+    if (session?.user) {
       try {
-        const parsed =
-          JSON.parse(item.images);
+        const isAdmin = await checkAdminUser(session.user.id);
 
-        if (Array.isArray(parsed)) {
-          images = parsed
-            .map(function (image) {
-              if (typeof image === "string") {
-                return image;
-              }
-
-              if (
-                image &&
-                typeof image === "object"
-              ) {
-                return {
-                  url:
-                    image.url ||
-                    image.publicUrl ||
-                    "",
-                  path:
-                    image.path ||
-                    ""
-                };
-              }
-
-              return null;
-            })
-            .filter(Boolean);
+        if (isAdmin) {
+          state.session = session;
+          await initializeAdmin(session);
+          return;
         }
+
+        await supabase.auth.signOut();
+
       } catch (error) {
-        images = item.images
-          .split(",")
-          .map(function (url) {
-            return url.trim();
-          })
-          .filter(Boolean);
+        console.error("Existing session verification failed:", error);
       }
     }
 
-    return {
-      ...item,
-      id: String(item.id || ""),
-      name: String(
-        item.name || "Untitled Product"
-      ),
-      category: String(
-        item.category || "other"
-      ).toLowerCase(),
-      price: Number(item.price) || 0,
-      description: String(
-        item.description || ""
-      ),
-      material: String(
-        item.material ||
-          item.metal ||
-          ""
-      ),
-      sku: String(
-        item.sku ||
-          item.product_code ||
-          ""
-      ),
-      image_url: String(
-        item.image_url ||
-          (images[0] &&
-            typeof images[0] === "string"
-            ? images[0]
-            : images[0]?.url) ||
-          ""
-      ),
-      images,
-      is_published:
-        Boolean(item.is_published),
-      featured:
-        Boolean(item.featured)
-    };
+    showLoginScreen();
+
+    supabase.auth.onAuthStateChange(async (event, sessionData) => {
+      if (event === "SIGNED_OUT") {
+        state.session = null;
+        showLoginScreen();
+        return;
+      }
+
+      if (
+        (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") &&
+        sessionData?.user
+      ) {
+        try {
+          const isAdmin = await checkAdminUser(sessionData.user.id);
+
+          if (!isAdmin) {
+            await supabase.auth.signOut();
+            setLoginMessage(
+              "This account does not have administrator access.",
+              "error"
+            );
+            return;
+          }
+
+          state.session = sessionData;
+
+          if (event === "SIGNED_IN") {
+            await initializeAdmin(sessionData);
+          }
+        } catch (error) {
+          console.error("Auth state verification failed:", error);
+        }
+      }
+    });
   }
 
-  function applyAdminFilters() {
-    const search = String(
-      elements.adminSearch?.value || ""
-    )
-      .trim()
-      .toLowerCase();
+  /* ==========================================================
+     INITIALIZATION
+     ========================================================== */
 
-    const category =
-      elements.adminCategoryFilter?.value ||
-      "all";
+  async function initializeAdmin(session) {
+    state.session = session;
 
-    const status =
-      elements.adminStatusFilter?.value ||
-      "all";
+    showAdminApp();
 
-    filteredProducts =
-      allProducts.filter(function (product) {
-        const matchesSearch =
-          !search ||
-          [
-            product.name,
-            product.category,
-            product.description,
-            product.material,
-            product.sku
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(search);
+    const emailElement = getElement("adminUserEmail");
 
-        const matchesCategory =
-          category === "all" ||
-          product.category === category;
+    if (emailElement) {
+      emailElement.textContent = session?.user?.email || "";
+    }
 
-        const matchesStatus =
-          status === "all" ||
-          (status === "published" &&
-            product.is_published) ||
-          (status === "hidden" &&
-            !product.is_published);
+    setMetalMode(state.metalMode, false);
 
-        return (
-          matchesSearch &&
-          matchesCategory &&
-          matchesStatus
-        );
+    bindNavigation();
+    bindMetalControls();
+    bindProductControls();
+    bindFormControls();
+    bindModalControls();
+
+    resetProductForm();
+
+    await loadProducts();
+    showView(state.currentView);
+  }
+
+  /* ==========================================================
+     NAVIGATION
+     ========================================================== */
+
+  function bindNavigation() {
+    $$(".sidebar-nav-item").forEach((button) => {
+      if (button.dataset.bound === "true") {
+        return;
+      }
+
+      button.dataset.bound = "true";
+
+      button.addEventListener("click", () => {
+        const view = button.dataset.view;
+
+        if (!view) {
+          return;
+        }
+
+        showView(view);
+        closeMobileSidebar();
       });
+    });
 
-    renderProductTable();
+    const logoutButton = getElement("logoutButton");
+
+    if (logoutButton && logoutButton.dataset.bound !== "true") {
+      logoutButton.dataset.bound = "true";
+      logoutButton.addEventListener("click", handleLogout);
+    }
+
+    const mobileToggle = getElement("mobileSidebarToggle");
+
+    if (mobileToggle && mobileToggle.dataset.bound !== "true") {
+      mobileToggle.dataset.bound = "true";
+
+      mobileToggle.addEventListener("click", toggleMobileSidebar);
+    }
+
+    const overlay = getElement("adminSidebarOverlay");
+
+    if (overlay && overlay.dataset.bound !== "true") {
+      overlay.dataset.bound = "true";
+
+      overlay.addEventListener("click", closeMobileSidebar);
+    }
   }
 
-  function renderProductTable() {
-    if (!elements.productTableBody) {
+  function showView(view) {
+    const allowedViews = ["dashboard", "products", "add-product"];
+
+    state.currentView = allowedViews.includes(view)
+      ? view
+      : "dashboard";
+
+    $$(".admin-view").forEach((section) => {
+      section.classList.toggle(
+        "active",
+        section.dataset.view === state.currentView
+      );
+    });
+
+    $$(".sidebar-nav-item").forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.view === state.currentView
+      );
+    });
+
+    const headerTitle = getElement("adminHeaderTitle");
+    const headerSubtitle = getElement("adminHeaderSubtitle");
+
+    const titles = {
+      dashboard: {
+        title: "Dashboard",
+        subtitle: "Overview of your jewellery catalogue."
+      },
+      products: {
+        title: "Products",
+        subtitle: "Manage Gold and Silver jewellery."
+      },
+      "add-product": {
+        title: state.editingProductId ? "Edit Product" : "Add Product",
+        subtitle: state.editingProductId
+          ? "Update the selected jewellery item."
+          : "Add a new jewellery item to your catalogue."
+      }
+    };
+
+    const current = titles[state.currentView];
+
+    if (headerTitle) {
+      headerTitle.textContent = current.title;
+    }
+
+    if (headerSubtitle) {
+      headerSubtitle.textContent = current.subtitle;
+    }
+
+    if (state.currentView === "dashboard") {
+      renderDashboard();
+    }
+
+    if (state.currentView === "products") {
+      renderProducts();
+    }
+  }
+
+  function toggleMobileSidebar() {
+    const sidebar = $(".admin-sidebar");
+    const overlay = getElement("adminSidebarOverlay");
+
+    if (!sidebar) {
       return;
     }
 
-    if (filteredProducts.length === 0) {
-      elements.productTableBody.innerHTML = "";
+    const open = sidebar.classList.toggle("mobile-open");
 
-      if (elements.adminEmptyState) {
-        elements.adminEmptyState.hidden = false;
+    if (overlay) {
+      overlay.classList.toggle("active", open);
+    }
+  }
+
+  function closeMobileSidebar() {
+    const sidebar = $(".admin-sidebar");
+    const overlay = getElement("adminSidebarOverlay");
+
+    if (sidebar) {
+      sidebar.classList.remove("mobile-open");
+    }
+
+    if (overlay) {
+      overlay.classList.remove("active");
+    }
+  }
+
+  /* ==========================================================
+     METAL MODE
+     ========================================================== */
+
+  function bindMetalControls() {
+    const toggle = getElement("adminMetalToggle");
+
+    if (toggle && toggle.dataset.bound !== "true") {
+      toggle.dataset.bound = "true";
+
+      toggle.addEventListener("click", () => {
+        const nextMetal =
+          state.metalMode === "gold"
+            ? "silver"
+            : "gold";
+
+        setMetalMode(nextMetal, true);
+      });
+    }
+
+    $$("[data-product-metal]").forEach((button) => {
+      if (button.dataset.bound === "true") {
+        return;
       }
 
+      button.dataset.bound = "true";
+
+      button.addEventListener("click", () => {
+        const value = button.dataset.productMetal;
+
+        state.productMetalFilter =
+          value === "gold" || value === "silver"
+            ? value
+            : "all";
+
+        $$("[data-product-metal]").forEach((item) => {
+          item.classList.toggle(
+            "active",
+            item.dataset.productMetal === state.productMetalFilter
+          );
+        });
+
+        updateCategoryFilterOptions();
+        renderProducts();
+      });
+    });
+  }
+
+  function setMetalMode(metal, refresh = true) {
+    state.metalMode = normalizeMetal(metal);
+
+    document.body.classList.toggle(
+      "admin-silver-mode",
+      state.metalMode === "silver"
+    );
+
+    const toggle = getElement("adminMetalToggle");
+
+    if (toggle) {
+      toggle.classList.toggle(
+        "silver",
+        state.metalMode === "silver"
+      );
+
+      toggle.setAttribute(
+        "aria-pressed",
+        state.metalMode === "silver" ? "true" : "false"
+      );
+    }
+
+    const goldLabel = getElement("goldAdminLabel");
+    const silverLabel = getElement("silverAdminLabel");
+
+    if (goldLabel) {
+      goldLabel.classList.toggle(
+        "active",
+        state.metalMode === "gold"
+      );
+
+      goldLabel.classList.remove("silver-active");
+    }
+
+    if (silverLabel) {
+      silverLabel.classList.toggle(
+        "active",
+        state.metalMode === "silver"
+      );
+
+      silverLabel.classList.toggle(
+        "silver-active",
+        state.metalMode === "silver"
+      );
+    }
+
+    const productMetalInput = getElement("productMetal");
+
+    if (
+      productMetalInput &&
+      document.activeElement !== productMetalInput &&
+      !state.editingProductId
+    ) {
+      productMetalInput.value = state.metalMode;
+      updateCategoryOptions(state.metalMode);
+    }
+
+    const sidebarModeText = $(".sidebar-mode-value");
+
+    if (sidebarModeText) {
+      sidebarModeText.innerHTML = `
+        <span class="sidebar-mode-dot"></span>
+        ${escapeHtml(formatMetal(state.metalMode))} Catalogue
+      `;
+    }
+
+    if (refresh) {
+      updateCategoryFilterOptions();
+      renderProducts();
+      renderDashboard();
+    }
+  }
+
+  /* ==========================================================
+     CATEGORY SELECTS
+     ========================================================== */
+
+  function updateCategoryOptions(metal, selectedValue = "") {
+    const select = getElement("productCategory");
+
+    if (!select) {
       return;
     }
 
-    if (elements.adminEmptyState) {
-      elements.adminEmptyState.hidden = true;
-    }
+    const normalizedMetal = normalizeMetal(metal);
+    const categories = getCategorySet(normalizedMetal);
 
-    elements.productTableBody.innerHTML =
-      filteredProducts
-        .map(createProductRow)
-        .join("");
+    const selected =
+      categories.some((category) => category.value === selectedValue)
+        ? selectedValue
+        : categories[0]?.value || "";
+
+    select.innerHTML = categories
+      .map(
+        (category) =>
+          `<option value="${escapeHtml(category.value)}">${escapeHtml(
+            category.label
+          )}</option>`
+      )
+      .join("");
+
+    if (selected) {
+      select.value = selected;
+    }
   }
 
-  function createProductRow(product) {
-    const image =
-      product.image_url ||
-      "https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=300&q=80";
+  function updateCategoryFilterOptions() {
+    const select = getElement("productCategoryFilter");
 
-    const statusClass =
-      product.is_published
-        ? "published"
-        : "hidden";
+    if (!select) {
+      return;
+    }
 
-    const statusText =
-      product.is_published
-        ? "Published"
-        : "Hidden";
+    const filterMetal =
+      state.productMetalFilter === "all"
+        ? state.metalMode
+        : state.productMetalFilter;
 
-    const price =
-      product.price > 0
-        ? formatCurrency(product.price)
-        : "Enquiry";
+    const categories = getCategorySet(filterMetal);
 
-    const updated =
-      formatDate(
-        product.updated_at ||
-          product.created_at
-      );
+    const previousValue = state.productCategoryFilter;
 
-    return `
-      <tr data-product-id="${escapeAttribute(
-        product.id
-      )}">
-
-        <td>
-          <div class="table-product">
-
-            <div class="table-product-image">
-              <img
-                src="${escapeAttribute(image)}"
-                alt="${escapeAttribute(
-                  product.name
-                )}"
-                loading="lazy"
-                onerror="this.src='https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=300&q=80';"
-              >
-            </div>
-
-            <div class="table-product-info">
-
-              <strong>
-                ${escapeHTML(
-                  product.name
-                )}
-
-                ${
-                  product.featured
-                    ? `<span class="featured-badge">Featured</span>`
-                    : ""
-                }
-              </strong>
-
-              <small>
-                ${
-                  product.sku
-                    ? `SKU: ${escapeHTML(
-                        product.sku
-                      )}`
-                    : "No product code"
-                }
-              </small>
-
-            </div>
-
-          </div>
-        </td>
-
-        <td>
-          <span class="table-category">
-            ${escapeHTML(
-              formatCategory(
-                product.category
-              )
-            )}
-          </span>
-        </td>
-
-        <td>
-          <span class="table-price">
-            ${escapeHTML(price)}
-          </span>
-        </td>
-
-        <td>
-          <span class="status-badge ${statusClass}">
-            ${statusText}
-          </span>
-        </td>
-
-        <td>
-          <span class="table-date">
-            ${escapeHTML(updated)}
-          </span>
-        </td>
-
-        <td>
-
-          <div class="table-actions">
-
-            <button
-              type="button"
-              class="table-action"
-              data-table-action="edit"
-              data-product-id="${escapeAttribute(
-                product.id
-              )}"
-              title="Edit product"
-            >
-              Edit
-            </button>
-
-            <button
-              type="button"
-              class="table-action"
-              data-table-action="toggle"
-              data-product-id="${escapeAttribute(
-                product.id
-              )}"
-              title="${
-                product.is_published
-                  ? "Hide product"
-                  : "Publish product"
-              }"
-            >
-              ${
-                product.is_published
-                  ? "Hide"
-                  : "Publish"
-              }
-            </button>
-
-            <button
-              type="button"
-              class="table-action delete"
-              data-table-action="delete"
-              data-product-id="${escapeAttribute(
-                product.id
-              )}"
-              title="Delete product"
-            >
-              Delete
-            </button>
-
-          </div>
-
-        </td>
-
-      </tr>
+    select.innerHTML = `
+      <option value="all">All Categories</option>
+      ${categories
+        .map(
+          (category) =>
+            `<option value="${escapeHtml(category.value)}">${escapeHtml(
+              category.label
+            )}</option>`
+        )
+        .join("")}
     `;
+
+    if (
+      previousValue === "all" ||
+      categories.some(
+        (category) => category.value === previousValue
+      )
+    ) {
+      select.value = previousValue;
+    } else {
+      state.productCategoryFilter = "all";
+      select.value = "all";
+    }
   }
 
-  function handleTableAction(event) {
-    const button =
-      event.target.closest(
-        "[data-table-action]"
-      );
+  /* ==========================================================
+     PRODUCT CONTROLS
+     ========================================================== */
 
-    if (!button) {
+  function bindProductControls() {
+    const search = getElement("productSearch");
+
+    if (search && search.dataset.bound !== "true") {
+      search.dataset.bound = "true";
+
+      search.addEventListener("input", () => {
+        state.productSearch = search.value.trim().toLowerCase();
+        renderProducts();
+      });
+    }
+
+    const categoryFilter = getElement("productCategoryFilter");
+
+    if (
+      categoryFilter &&
+      categoryFilter.dataset.bound !== "true"
+    ) {
+      categoryFilter.dataset.bound = "true";
+
+      categoryFilter.addEventListener("change", () => {
+        state.productCategoryFilter = categoryFilter.value;
+        renderProducts();
+      });
+    }
+
+    const statusFilter = getElement("productStatusFilter");
+
+    if (
+      statusFilter &&
+      statusFilter.dataset.bound !== "true"
+    ) {
+      statusFilter.dataset.bound = "true";
+
+      statusFilter.addEventListener("change", () => {
+        state.productStatusFilter = statusFilter.value;
+        renderProducts();
+      });
+    }
+
+    const addButtons = $$(
+      '[data-action="add-product"]'
+    );
+
+    addButtons.forEach((button) => {
+      if (button.dataset.bound === "true") {
+        return;
+      }
+
+      button.dataset.bound = "true";
+
+      button.addEventListener("click", () => {
+        startNewProduct();
+      });
+    });
+
+    const refreshButton = getElement("refreshProductsButton");
+
+    if (
+      refreshButton &&
+      refreshButton.dataset.bound !== "true"
+    ) {
+      refreshButton.dataset.bound = "true";
+
+      refreshButton.addEventListener("click", async () => {
+        await loadProducts();
+      });
+    }
+
+    const table = getElement("productsTable");
+
+    if (table && table.dataset.bound !== "true") {
+      table.dataset.bound = "true";
+
+      table.addEventListener("click", handleProductTableClick);
+    }
+  }
+
+  function handleProductTableClick(event) {
+    const actionButton = event.target.closest("[data-product-action]");
+
+    if (!actionButton) {
       return;
     }
 
-    const action =
-      button.dataset.tableAction;
-
-    const productId =
-      button.dataset.productId;
+    const action = actionButton.dataset.productAction;
+    const productId = actionButton.dataset.productId;
 
     if (!productId) {
       return;
     }
 
     if (action === "edit") {
-      startEditProduct(productId);
-      return;
-    }
-
-    if (action === "toggle") {
-      toggleProductPublished(productId);
+      editProduct(productId);
       return;
     }
 
     if (action === "delete") {
-      openDeleteConfirmation(productId);
-    }
-  }
-
-  function updateStats() {
-    const total =
-      allProducts.length;
-
-    const published =
-      allProducts.filter(function (product) {
-        return product.is_published;
-      }).length;
-
-    const hidden =
-      total - published;
-
-    const categories =
-      new Set(
-        allProducts.map(function (product) {
-          return product.category;
-        })
-      );
-
-    if (elements.totalProducts) {
-      elements.totalProducts.textContent =
-        total;
-    }
-
-    if (elements.publishedProducts) {
-      elements.publishedProducts.textContent =
-        published;
-    }
-
-    if (elements.hiddenProducts) {
-      elements.hiddenProducts.textContent =
-        hidden;
-    }
-
-    if (elements.categoryCount) {
-      elements.categoryCount.textContent =
-        categories.size;
-    }
-  }
-
-  function switchView(view) {
-    if (view === "add-product") {
-      startAddProduct();
+      openDeleteModal(productId);
       return;
     }
 
-    showProducts();
+    if (action === "toggle-publish") {
+      togglePublished(productId);
+    }
   }
 
-  function showProducts() {
-    closeSidebar();
+  /* ==========================================================
+     LOAD PRODUCTS
+     ========================================================== */
 
-    if (elements.productsView) {
-      elements.productsView.classList.add(
-        "active"
-      );
+  async function loadProducts() {
+    const table = getElement("productsTable");
+
+    if (table) {
+      table.innerHTML = `
+        <div class="admin-loading">
+          Loading jewellery products...
+        </div>
+      `;
     }
 
-    if (elements.addProductView) {
-      elements.addProductView.classList.remove(
-        "active"
-      );
-    }
+    try {
+      const supabase = createSupabaseClient();
 
-    if (elements.pageTitle) {
-      elements.pageTitle.textContent =
-        "Products";
-    }
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", {
+          ascending: false
+        });
 
-    document
-      .querySelectorAll("[data-view]")
-      .forEach(function (button) {
-        button.classList.toggle(
-          "active",
-          button.dataset.view ===
-            "products"
-        );
-      });
-  }
+      if (error) {
+        throw error;
+      }
 
-  function startAddProduct() {
-    closeSidebar();
+      state.products = Array.isArray(data)
+        ? data.map(normalizeProduct)
+        : [];
 
-    editingProductId = null;
+      updateCategoryFilterOptions();
+      renderDashboard();
+      renderProducts();
 
-    resetEditor();
+    } catch (error) {
+      console.error("Product loading error:", error);
 
-    if (elements.editorTitle) {
-      elements.editorTitle.textContent =
-        "Add Product";
-    }
+      if (table) {
+        table.innerHTML = `
+          <div class="admin-empty-state">
+            <div>
+              <div class="admin-empty-state-icon">!</div>
+              <h3>Unable to load products</h3>
+              <p>${escapeHtml(
+                error?.message ||
+                  "Please check your Supabase connection and try again."
+              )}</p>
+            </div>
+          </div>
+        `;
+      }
 
-    if (elements.saveProductButton) {
-      elements.saveProductButton.textContent =
-        "Save Product";
-    }
-
-    if (elements.productsView) {
-      elements.productsView.classList.remove(
-        "active"
-      );
-    }
-
-    if (elements.addProductView) {
-      elements.addProductView.classList.add(
-        "active"
-      );
-    }
-
-    if (elements.pageTitle) {
-      elements.pageTitle.textContent =
-        "Add Product";
-    }
-
-    document
-      .querySelectorAll("[data-view]")
-      .forEach(function (button) {
-        button.classList.toggle(
-          "active",
-          button.dataset.view ===
-            "add-product"
-        );
-      });
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-  }
-
-  function startEditProduct(productId) {
-    const product =
-      allProducts.find(function (item) {
-        return (
-          String(item.id) ===
-          String(productId)
-        );
-      });
-
-    if (!product) {
       showToast(
-        "Product could not be found.",
+        error?.message || "Unable to load products.",
         "error"
       );
+    }
+  }
 
-      return;
+  /* ==========================================================
+     DASHBOARD
+     ========================================================== */
+
+  function renderDashboard() {
+    const total = state.products.length;
+
+    const published = state.products.filter(
+      (product) => product.is_published
+    ).length;
+
+    const featured = state.products.filter(
+      (product) => product.featured
+    ).length;
+
+    const categories = new Set(
+      state.products
+        .filter(
+          (product) =>
+            normalizeMetal(product.metal) === state.metalMode
+        )
+        .map((product) => product.category)
+    );
+
+    const totalElement = getElement("totalProducts");
+    const publishedElement = getElement("publishedProducts");
+    const featuredElement = getElement("featuredProducts");
+    const categoryElement = getElement("categoryCount");
+
+    if (totalElement) {
+      totalElement.textContent = total;
     }
 
-    editingProductId = product.id;
-
-    resetEditor();
-
-    if (elements.editorTitle) {
-      elements.editorTitle.textContent =
-        "Edit Product";
+    if (publishedElement) {
+      publishedElement.textContent = published;
     }
 
-    if (elements.saveProductButton) {
-      elements.saveProductButton.textContent =
-        "Update Product";
+    if (featuredElement) {
+      featuredElement.textContent = featured;
     }
 
-    if (elements.productId) {
-      elements.productId.value =
-        product.id;
+    if (categoryElement) {
+      categoryElement.textContent = categories.size;
     }
 
-    if (elements.productName) {
-      elements.productName.value =
-        product.name;
+    const metalProducts = state.products.filter(
+      (product) =>
+        normalizeMetal(product.metal) === state.metalMode
+    );
+
+    const dashboardMetalCount = getElement("dashboardMetalCount");
+
+    if (dashboardMetalCount) {
+      dashboardMetalCount.textContent = metalProducts.length;
     }
 
-    if (elements.productCategory) {
-      elements.productCategory.value =
-        product.category;
-    }
+    const dashboardMetalName = getElement("dashboardMetalName");
 
-    if (elements.productPrice) {
-      elements.productPrice.value =
-        product.price || "";
-    }
-
-    if (elements.productMaterial) {
-      elements.productMaterial.value =
-        product.material || "";
-    }
-
-    if (elements.productSku) {
-      elements.productSku.value =
-        product.sku || "";
-    }
-
-    if (elements.productDescription) {
-      elements.productDescription.value =
-        product.description || "";
-    }
-
-    if (elements.productPublished) {
-      elements.productPublished.checked =
-        product.is_published;
-    }
-
-    if (elements.productFeatured) {
-      elements.productFeatured.checked =
-        product.featured;
-    }
-
-    existingImages =
-      getProductImages(product);
-
-    renderImagePreviews();
-
-    updateDescriptionCount();
-
-    if (elements.productsView) {
-      elements.productsView.classList.remove(
-        "active"
+    if (dashboardMetalName) {
+      dashboardMetalName.textContent = formatMetal(
+        state.metalMode
       );
     }
+  }
 
-    if (elements.addProductView) {
-      elements.addProductView.classList.add(
-        "active"
-      );
-    }
+  /* ==========================================================
+     FILTER PRODUCTS
+     ========================================================== */
 
-    if (elements.pageTitle) {
-      elements.pageTitle.textContent =
-        "Edit Product";
-    }
+  function getFilteredProducts() {
+    return state.products.filter((product) => {
+      if (
+        state.productMetalFilter !== "all" &&
+        product.metal !== state.productMetalFilter
+      ) {
+        return false;
+      }
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
+      if (
+        state.productCategoryFilter !== "all" &&
+        product.category !== state.productCategoryFilter
+      ) {
+        return false;
+      }
+
+      if (state.productStatusFilter === "published") {
+        if (!product.is_published) {
+          return false;
+        }
+      }
+
+      if (state.productStatusFilter === "draft") {
+        if (product.is_published) {
+          return false;
+        }
+      }
+
+      if (state.productStatusFilter === "featured") {
+        if (!product.featured) {
+          return false;
+        }
+      }
+
+      if (state.productSearch) {
+        const searchable = [
+          product.name,
+          product.sku,
+          product.category,
+          product.metal,
+          product.material,
+          product.description
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        if (!searchable.includes(state.productSearch)) {
+          return false;
+        }
+      }
+
+      return true;
     });
   }
 
-  function resetEditor() {
-    editingProductId = null;
+  /* ==========================================================
+     RENDER PRODUCTS
+     ========================================================== */
 
-    selectedFiles = [];
-    existingImages = [];
+  function renderProducts() {
+    const container = getElement("productsTable");
 
-    if (elements.productForm) {
-      elements.productForm.reset();
+    if (!container) {
+      return;
     }
 
-    if (elements.productId) {
-      elements.productId.value = "";
+    const products = getFilteredProducts();
+
+    if (!products.length) {
+      container.innerHTML = `
+        <div class="admin-empty-state">
+          <div>
+            <div class="admin-empty-state-icon">◇</div>
+            <h3>No products found</h3>
+            <p>
+              There are no products matching your current filters.
+              Add a new product or change the filters above.
+            </p>
+          </div>
+        </div>
+      `;
+      return;
     }
 
-    if (elements.productPublished) {
-      elements.productPublished.checked =
-        true;
+    const rows = products.map((product) => {
+      const image = getPrimaryImage(product);
+
+      return `
+        <tr>
+          <td>
+            <div class="admin-product-name-cell">
+              <div class="admin-product-thumb">
+                ${
+                  image
+                    ? `<img src="${escapeHtml(
+                        image
+                      )}" alt="${escapeHtml(product.name)}" loading="lazy">`
+                    : `<div class="admin-product-thumb-placeholder">◇</div>`
+                }
+              </div>
+
+              <div>
+                <p class="admin-product-name">
+                  ${escapeHtml(product.name)}
+                </p>
+
+                ${
+                  product.sku
+                    ? `<p class="admin-product-sku">SKU: ${escapeHtml(
+                        product.sku
+                      )}</p>`
+                    : ""
+                }
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <span class="admin-metal-badge ${escapeHtml(
+              product.metal
+            )}">
+              ${escapeHtml(formatMetal(product.metal))}
+            </span>
+          </td>
+
+          <td>
+            <span class="admin-category-badge">
+              ${escapeHtml(
+                getCategoryLabel(
+                  product.metal,
+                  product.category
+                )
+              )}
+            </span>
+          </td>
+
+          <td>
+            ${escapeHtml(formatPrice(product.price))}
+          </td>
+
+          <td>
+            ${
+              product.is_published
+                ? `<span class="admin-status-badge published">Published</span>`
+                : `<span class="admin-status-badge draft">Draft</span>`
+            }
+          </td>
+
+          <td>
+            ${
+              product.featured
+                ? `<span class="admin-featured-badge">Featured</span>`
+                : `<span style="color:#aaa;font-size:11px;">—</span>`
+            }
+          </td>
+
+          <td>
+            <div class="admin-table-actions">
+              <button
+                type="button"
+                class="table-action-button"
+                data-product-action="edit"
+                data-product-id="${escapeHtml(product.id)}"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                class="table-action-button"
+                data-product-action="toggle-publish"
+                data-product-id="${escapeHtml(product.id)}"
+              >
+                ${product.is_published ? "Unpublish" : "Publish"}
+              </button>
+
+              <button
+                type="button"
+                class="table-action-button danger"
+                data-product-action="delete"
+                data-product-id="${escapeHtml(product.id)}"
+              >
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    container.innerHTML = `
+      <div class="admin-product-table-wrap">
+        <table class="admin-product-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Metal</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Featured</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function getPrimaryImage(product) {
+    if (product.image_url) {
+      return product.image_url;
     }
 
-    if (elements.productFeatured) {
-      elements.productFeatured.checked =
-        false;
+    if (Array.isArray(product.images) && product.images.length) {
+      return product.images[0];
     }
 
-    if (elements.imagePreviewGrid) {
-      elements.imagePreviewGrid.innerHTML =
-        "";
+    return "";
+  }
+
+  /* ==========================================================
+     ADD / EDIT PRODUCT
+     ========================================================== */
+
+  function startNewProduct() {
+    state.editingProductId = null;
+    state.selectedFiles = [];
+    state.existingImages = [];
+
+    resetProductForm();
+
+    const productMetal = getElement("productMetal");
+
+    if (productMetal) {
+      productMetal.value = state.metalMode;
     }
 
-    clearEditorMessage();
-    clearUploadMessage();
-    updateDescriptionCount();
+    updateCategoryOptions(state.metalMode);
 
-    if (elements.productImages) {
-      elements.productImages.value = "";
+    showView("add-product");
+
+    const nameInput = getElement("productName");
+
+    if (nameInput) {
+      window.setTimeout(() => nameInput.focus(), 100);
     }
   }
 
-  function handleFileSelection(event) {
-    const files =
-      Array.from(
-        event.target.files || []
+  function editProduct(productId) {
+    const product = state.products.find(
+      (item) => String(item.id) === String(productId)
+    );
+
+    if (!product) {
+      showToast("Product could not be found.", "error");
+      return;
+    }
+
+    state.editingProductId = product.id;
+    state.selectedFiles = [];
+    state.existingImages = Array.isArray(product.images)
+      ? [...product.images]
+      : [];
+
+    const productIdInput = getElement("productId");
+    const nameInput = getElement("productName");
+    const metalInput = getElement("productMetal");
+    const categoryInput = getElement("productCategory");
+    const priceInput = getElement("productPrice");
+    const skuInput = getElement("productSku");
+    const materialInput = getElement("productMaterial");
+    const descriptionInput = getElement("productDescription");
+    const publishedInput = getElement("productPublished");
+    const featuredInput = getElement("productFeatured");
+
+    if (productIdInput) {
+      productIdInput.value = product.id;
+    }
+
+    if (nameInput) {
+      nameInput.value = product.name;
+    }
+
+    if (metalInput) {
+      metalInput.value = product.metal;
+    }
+
+    updateCategoryOptions(
+      product.metal,
+      product.category
+    );
+
+    if (priceInput) {
+      priceInput.value =
+        product.price === null ||
+        product.price === undefined
+          ? ""
+          : product.price;
+    }
+
+    if (skuInput) {
+      skuInput.value = product.sku;
+    }
+
+    if (materialInput) {
+      materialInput.value = product.material;
+    }
+
+    if (descriptionInput) {
+      descriptionInput.value = product.description;
+    }
+
+    if (publishedInput) {
+      publishedInput.checked = product.is_published;
+    }
+
+    if (featuredInput) {
+      featuredInput.checked = product.featured;
+    }
+
+    renderImagePreview();
+
+    clearFormMessage();
+
+    showView("add-product");
+
+    window.setTimeout(() => {
+      if (nameInput) {
+        nameInput.focus();
+      }
+    }, 100);
+  }
+
+  function resetProductForm() {
+    const form = getElement("productForm");
+
+    if (form) {
+      form.reset();
+    }
+
+    state.editingProductId = null;
+    state.selectedFiles = [];
+    state.existingImages = [];
+
+    const productId = getElement("productId");
+    const metal = getElement("productMetal");
+    const published = getElement("productPublished");
+    const featured = getElement("productFeatured");
+
+    if (productId) {
+      productId.value = "";
+    }
+
+    if (metal) {
+      metal.value = CONFIG.defaultMetal;
+      updateCategoryOptions(CONFIG.defaultMetal);
+    }
+
+    if (published) {
+      published.checked = true;
+    }
+
+    if (featured) {
+      featured.checked = false;
+    }
+
+    renderImagePreview();
+    clearFormMessage();
+
+    const saveButton = getElement("saveProductButton");
+
+    if (saveButton) {
+      saveButton.textContent = "Save Product";
+    }
+  }
+
+  function bindFormControls() {
+    const form = getElement("productForm");
+
+    if (form && form.dataset.bound !== "true") {
+      form.dataset.bound = "true";
+      form.addEventListener("submit", handleProductSubmit);
+    }
+
+    const cancelButton = getElement("cancelProductButton");
+
+    if (
+      cancelButton &&
+      cancelButton.dataset.bound !== "true"
+    ) {
+      cancelButton.dataset.bound = "true";
+
+      cancelButton.addEventListener("click", () => {
+        resetProductForm();
+        showView("products");
+      });
+    }
+
+    const metalInput = getElement("productMetal");
+
+    if (
+      metalInput &&
+      metalInput.dataset.bound !== "true"
+    ) {
+      metalInput.dataset.bound = "true";
+
+      metalInput.addEventListener("change", () => {
+        const metal = normalizeMetal(metalInput.value);
+
+        const currentCategory =
+          getElement("productCategory")?.value || "";
+
+        const validCategory = getCategorySet(metal).some(
+          (category) => category.value === currentCategory
+        )
+          ? currentCategory
+          : "";
+
+        updateCategoryOptions(metal, validCategory);
+      });
+    }
+
+    const imageInput = getElement("productImages");
+
+    if (
+      imageInput &&
+      imageInput.dataset.bound !== "true"
+    ) {
+      imageInput.dataset.bound = "true";
+
+      imageInput.addEventListener("change", handleImageSelection);
+    }
+
+    const imagePreview = getElement("imagePreview");
+
+    if (
+      imagePreview &&
+      imagePreview.dataset.bound !== "true"
+    ) {
+      imagePreview.dataset.bound = "true";
+
+      imagePreview.addEventListener(
+        "click",
+        handleImagePreviewClick
       );
-
-    addSelectedFiles(files);
-
-    event.target.value = "";
+    }
   }
 
-  function addSelectedFiles(files) {
+  /* ==========================================================
+     IMAGE HANDLING
+     ========================================================== */
+
+  function handleImageSelection(event) {
+    const files = Array.from(event.target.files || []);
+
     if (!files.length) {
       return;
     }
@@ -1457,1592 +1629,881 @@
     const validFiles = [];
 
     for (const file of files) {
-      if (
-        !ALLOWED_TYPES.includes(
-          file.type
-        )
-      ) {
-        showUploadMessage(
-          `${file.name}: only JPG, PNG and WebP images are allowed.`
+      if (!CONFIG.allowedImageTypes.includes(file.type)) {
+        showToast(
+          `${file.name}: only JPG, PNG and WebP images are allowed.`,
+          "error"
         );
-
         continue;
       }
 
-      if (
-        file.size >
-        MAX_FILE_SIZE
-      ) {
-        showUploadMessage(
-          `${file.name}: maximum file size is 6 MB.`
+      if (file.size > CONFIG.maxImageSize) {
+        showToast(
+          `${file.name}: image must be 6MB or smaller.`,
+          "error"
         );
-
         continue;
       }
 
       validFiles.push(file);
     }
 
-    if (!validFiles.length) {
-      return;
-    }
-
-    selectedFiles.push(
+    state.selectedFiles = [
+      ...state.selectedFiles,
       ...validFiles
-    );
+    ];
 
-    renderImagePreviews();
+    event.target.value = "";
 
-    clearUploadMessage();
+    renderImagePreview();
   }
 
-  function setupDragAndDrop() {
-    const zone =
-      elements.uploadZone;
+  function handleImagePreviewClick(event) {
+    const removeButton = event.target.closest(
+      "[data-remove-image]"
+    );
 
-    if (!zone) {
+    if (!removeButton) {
       return;
     }
 
-    [
-      "dragenter",
-      "dragover"
-    ].forEach(function (eventName) {
-      zone.addEventListener(
-        eventName,
-        function (event) {
-          event.preventDefault();
-          event.stopPropagation();
+    const type = removeButton.dataset.removeImage;
 
-          zone.classList.add(
-            "dragover"
-          );
-        }
-      );
-    });
+    if (type === "new") {
+      const index = Number(removeButton.dataset.index);
 
-    [
-      "dragleave",
-      "drop"
-    ].forEach(function (eventName) {
-      zone.addEventListener(
-        eventName,
-        function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-
-          zone.classList.remove(
-            "dragover"
-          );
-        }
-      );
-    });
-
-    zone.addEventListener(
-      "drop",
-      function (event) {
-        const files =
-          Array.from(
-            event.dataTransfer
-              ?.files || []
-          );
-
-        addSelectedFiles(files);
+      if (Number.isInteger(index)) {
+        state.selectedFiles.splice(index, 1);
       }
-    );
+    }
 
-    zone.addEventListener(
-      "click",
-      function (event) {
-        if (
-          event.target.closest(
-            "button"
-          )
-        ) {
-          return;
-        }
+    if (type === "existing") {
+      const index = Number(removeButton.dataset.index);
 
-        if (
-          event.target.closest(
-            "input"
-          )
-        ) {
-          return;
-        }
-
-        elements.productImages.click();
+      if (Number.isInteger(index)) {
+        state.existingImages.splice(index, 1);
       }
-    );
+    }
+
+    renderImagePreview();
   }
 
-  function renderImagePreviews() {
-    if (!elements.imagePreviewGrid) {
+  function renderImagePreview() {
+    const preview = getElement("imagePreview");
+
+    if (!preview) {
       return;
     }
 
-    const existingMarkup =
-      existingImages.map(
-        function (image, index) {
-          const url =
-            typeof image ===
-            "string"
-              ? image
-              : image.url;
+    if (
+      !state.selectedFiles.length &&
+      !state.existingImages.length
+    ) {
+      preview.classList.add("image-preview-empty");
+      preview.innerHTML = "";
+      return;
+    }
 
-          return `
-            <div
-              class="image-preview ${
-                index === 0
-                  ? "is-primary"
-                  : ""
-              }"
-              data-existing-index="${index}"
+    preview.classList.remove("image-preview-empty");
+
+    const existingMarkup = state.existingImages
+      .map(
+        (url, index) => `
+          <div class="image-preview-item">
+            <img
+              src="${escapeHtml(url)}"
+              alt="Existing product image ${index + 1}"
             >
 
-              <img
-                src="${escapeAttribute(
-                  url
-                )}"
-                alt="Product image ${
-                  index + 1
-                }"
-                onerror="this.style.opacity='0.35';"
-              >
+            <button
+              type="button"
+              class="image-preview-item-remove"
+              data-remove-image="existing"
+              data-index="${index}"
+              aria-label="Remove existing image"
+              title="Remove image"
+            >
+              ×
+            </button>
+          </div>
+        `
+      )
+      .join("");
 
-              ${
-                index === 0
-                  ? `<span class="image-preview-label">Primary</span>`
-                  : ""
-              }
-
-              <button
-                type="button"
-                class="image-preview-remove"
-                data-image-action="remove-existing"
-                data-image-index="${index}"
-                aria-label="Remove image"
-              >
-                ×
-              </button>
-
-            </div>
-          `;
-        }
-      ).join("");
-
-    const newMarkup =
-      selectedFiles.map(
-        function (file, index) {
-          const previewUrl =
-            URL.createObjectURL(file);
-
-          const isPrimary =
-            existingImages.length ===
-              0 &&
-            index === 0;
-
-          return `
-            <div
-              class="image-preview ${
-                isPrimary
-                  ? "is-primary"
-                  : ""
-              }"
-              data-new-index="${index}"
+    const newMarkup = state.selectedFiles
+      .map(
+        (file, index) => `
+          <div class="image-preview-item">
+            <img
+              src="${URL.createObjectURL(file)}"
+              alt="${escapeHtml(file.name)}"
             >
 
-              <img
-                src="${escapeAttribute(
-                  previewUrl
-                )}"
-                alt="${escapeAttribute(
-                  file.name
-                )}"
-              >
+            <button
+              type="button"
+              class="image-preview-item-remove"
+              data-remove-image="new"
+              data-index="${index}"
+              aria-label="Remove selected image"
+              title="Remove image"
+            >
+              ×
+            </button>
+          </div>
+        `
+      )
+      .join("");
 
-              ${
-                isPrimary
-                  ? `<span class="image-preview-label">Primary</span>`
-                  : ""
-              }
-
-              <button
-                type="button"
-                class="image-preview-remove"
-                data-image-action="remove-new"
-                data-image-index="${index}"
-                aria-label="Remove selected image"
-              >
-                ×
-              </button>
-
-            </div>
-          `;
-        }
-      ).join("");
-
-    elements.imagePreviewGrid.innerHTML =
-      existingMarkup +
-      newMarkup;
+    preview.innerHTML = existingMarkup + newMarkup;
   }
 
-  async function handleImagePreviewClick(
-    event
-  ) {
-    const button =
-      event.target.closest(
-        "[data-image-action]"
-      );
+  /* ==========================================================
+     PRODUCT VALIDATION
+     ========================================================== */
 
-    if (!button) {
-      return;
-    }
+  function collectProductFormData() {
+    const name = String(
+      getElement("productName")?.value || ""
+    ).trim();
 
-    const action =
-      button.dataset.imageAction;
-
-    const index = Number(
-      button.dataset.imageIndex
+    const metal = normalizeMetal(
+      getElement("productMetal")?.value
     );
 
-    if (!Number.isInteger(index)) {
-      return;
+    const category = normalizeCategory(
+      getElement("productCategory")?.value,
+      metal
+    );
+
+    const priceRaw = String(
+      getElement("productPrice")?.value || ""
+    ).trim();
+
+    const sku = String(
+      getElement("productSku")?.value || ""
+    ).trim();
+
+    const material = String(
+      getElement("productMaterial")?.value || ""
+    ).trim();
+
+    const description = String(
+      getElement("productDescription")?.value || ""
+    ).trim();
+
+    const isPublished = Boolean(
+      getElement("productPublished")?.checked
+    );
+
+    const featured = Boolean(
+      getElement("productFeatured")?.checked
+    );
+
+    if (!name) {
+      throw new Error("Please enter the product name.");
     }
 
-    if (
-      action ===
-      "remove-new"
-    ) {
-      selectedFiles.splice(
-        index,
-        1
+    if (!CATEGORY_SETS[metal].some(
+      (item) => item.value === category
+    )) {
+      throw new Error("Please select a valid category.");
+    }
+
+    let price = null;
+
+    if (priceRaw) {
+      price = Number(
+        priceRaw.replace(/,/g, "")
       );
 
-      renderImagePreviews();
-
-      return;
+      if (!Number.isFinite(price) || price < 0) {
+        throw new Error(
+          "Please enter a valid price."
+        );
+      }
     }
 
-    if (
-      action ===
-      "remove-existing"
-    ) {
-      await removeExistingImage(
-        index
-      );
-    }
+    return {
+      name,
+      metal,
+      category,
+      price,
+      sku,
+      material,
+      description,
+      is_published: isPublished,
+      featured
+    };
   }
 
-  async function removeExistingImage(
-    index
-  ) {
-    if (
-      index < 0 ||
-      index >=
-        existingImages.length
-    ) {
+  /* ==========================================================
+     SAVE PRODUCT
+     ========================================================== */
+
+  async function handleProductSubmit(event) {
+    event.preventDefault();
+
+    if (state.isSaving) {
       return;
     }
 
-    const image =
-      existingImages[index];
-
-    const confirmed =
-      window.confirm(
-        "Remove this image from the product?"
-      );
-
-    if (!confirmed) {
-      return;
-    }
+    let formData;
 
     try {
-      const path =
-        typeof image ===
-        "object"
-          ? image.path
-          : "";
+      formData = collectProductFormData();
+    } catch (error) {
+      setFormMessage(
+        error?.message || "Please check the form.",
+        "error"
+      );
+      return;
+    }
 
-      if (path) {
-        const { error } =
-          await supabaseClient.storage
-            .from(
-              STORAGE_BUCKET
-            )
-            .remove([path]);
+    const wasEditing = Boolean(state.editingProductId);
+
+    state.isSaving = true;
+
+    const saveButton = getElement("saveProductButton");
+
+    setButtonLoading(
+      saveButton,
+      true,
+      wasEditing ? "Updating..." : "Saving..."
+    );
+
+    setFormMessage(
+      wasEditing
+        ? "Updating product..."
+        : "Saving product...",
+      "info"
+    );
+
+    try {
+      const supabase = createSupabaseClient();
+
+      const uploadedUrls = await uploadSelectedImages(
+        formData.metal
+      );
+
+      const allImages = [
+        ...state.existingImages,
+        ...uploadedUrls
+      ];
+
+      const imageUrl = allImages[0] || "";
+
+      const payload = {
+        name: formData.name,
+        metal: formData.metal,
+        category: formData.category,
+        price: formData.price,
+        sku: formData.sku || null,
+        material: formData.material || null,
+        description: formData.description || null,
+        image_url: imageUrl || null,
+        images: allImages,
+        is_published: formData.isPublished,
+        featured: formData.featured,
+        updated_at: new Date().toISOString()
+      };
+
+      let savedProduct;
+
+      if (wasEditing) {
+        const { data, error } = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", state.editingProductId)
+          .select("*")
+          .single();
 
         if (error) {
           throw error;
         }
-      }
 
-      existingImages.splice(
-        index,
-        1
-      );
+        savedProduct = normalizeProduct(data);
 
-      await saveCurrentProductImages();
-
-      renderImagePreviews();
-
-      showToast(
-        "Image removed.",
-        "success"
-      );
-    } catch (error) {
-      console.error(
-        "Image removal failed:",
-        error
-      );
-
-      showToast(
-        `Could not remove image: ${getErrorMessage(
-          error
-        )}`,
-        "error"
-      );
-    }
-  }
-
-  async function saveCurrentProductImages() {
-    if (!editingProductId) {
-      return;
-    }
-
-    const images =
-      existingImages.map(
-        function (image) {
-          if (
-            typeof image ===
-            "string"
-          ) {
-            return {
-              url: image,
-              path: ""
-            };
-          }
-
-          return {
-            url: image.url || "",
-            path: image.path || ""
-          };
-        }
-      );
-
-    const imageUrl =
-      images[0]?.url || "";
-
-    const { error } =
-      await supabaseClient
-        .from("products")
-        .update({
-          images,
-          image_url: imageUrl,
-          updated_at:
-            new Date().toISOString()
-        })
-        .eq(
-          "id",
-          editingProductId
-        );
-
-    if (error) {
-      throw error;
-    }
-
-    const product =
-      allProducts.find(
-        function (item) {
-          return (
-            String(item.id) ===
-            String(editingProductId)
-          );
-        }
-      );
-
-    if (product) {
-      product.images = images;
-      product.image_url =
-        imageUrl;
-    }
-  }
-
-  async function handleProductSubmit(
-    event
-  ) {
-    event.preventDefault();
-
-    if (!supabaseClient) {
-      showEditorMessage(
-        "Supabase is not connected.",
-        "error"
-      );
-
-      return;
-    }
-
-    const formData =
-      getProductFormData();
-
-    const validation =
-      validateProductForm(
-        formData
-      );
-
-    if (!validation.valid) {
-      showEditorMessage(
-        validation.message,
-        "error"
-      );
-
-      return;
-    }
-
-    setSaveLoading(true);
-
-    try {
-      if (editingProductId) {
-        await updateProduct(
-          formData
-        );
       } else {
-        await createProduct(
-          formData
+        const { data, error } = await supabase
+          .from("products")
+          .insert(payload)
+          .select("*")
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        savedProduct = normalizeProduct(data);
+      }
+
+      if (!savedProduct) {
+        throw new Error(
+          "The product was saved but could not be returned."
         );
       }
 
-      await loadProducts();
+      if (wasEditing) {
+        const oldProduct = state.products.find(
+          (product) =>
+            String(product.id) ===
+            String(state.editingProductId)
+        );
 
-      showProducts();
+        if (oldProduct) {
+          const removedImages = getRemovedExistingImages(
+            oldProduct,
+            state.existingImages
+          );
 
-      resetEditor();
+          if (removedImages.length) {
+            await deleteStorageImages(
+              removedImages
+            );
+          }
+        }
+      }
+
+      const index = state.products.findIndex(
+        (product) =>
+          String(product.id) ===
+          String(savedProduct.id)
+      );
+
+      if (index >= 0) {
+        state.products[index] = savedProduct;
+      } else {
+        state.products.unshift(savedProduct);
+      }
 
       showToast(
-        editingProductId
+        wasEditing
           ? "Product updated successfully."
           : "Product added successfully.",
         "success"
       );
-    } catch (error) {
-      console.error(
-        "Product save failed:",
-        error
-      );
 
-      showEditorMessage(
-        getErrorMessage(error),
+      resetProductForm();
+      updateCategoryFilterOptions();
+      renderDashboard();
+      renderProducts();
+      showView("products");
+
+    } catch (error) {
+      console.error("Product save error:", error);
+
+      setFormMessage(
+        error?.message ||
+          "Unable to save the product. Please try again.",
         "error"
       );
 
       showToast(
-        "Could not save the product.",
+        error?.message ||
+          "Unable to save the product.",
         "error"
       );
+
     } finally {
-      setSaveLoading(false);
+      state.isSaving = false;
+      setButtonLoading(saveButton, false);
     }
   }
 
-  function getProductFormData() {
-    const priceValue =
-      String(
-        elements.productPrice
-          ?.value || ""
-      ).trim();
+  /* ==========================================================
+     IMAGE UPLOAD TO SUPABASE STORAGE
+     ========================================================== */
 
-    return {
-      name: String(
-        elements.productName
-          ?.value || ""
-      ).trim(),
-
-      category: String(
-        elements.productCategory
-          ?.value || ""
-      ).trim(),
-
-      price:
-        priceValue === ""
-          ? 0
-          : Number(priceValue),
-
-      material: String(
-        elements.productMaterial
-          ?.value || ""
-      ).trim(),
-
-      sku: String(
-        elements.productSku
-          ?.value || ""
-      ).trim(),
-
-      description: String(
-        elements.productDescription
-          ?.value || ""
-      ).trim(),
-
-      is_published:
-        Boolean(
-          elements.productPublished
-            ?.checked
-        ),
-
-      featured:
-        Boolean(
-          elements.productFeatured
-            ?.checked
-        )
-    };
-  }
-
-  function validateProductForm(
-    data
-  ) {
-    if (!data.name) {
-      return {
-        valid: false,
-        message:
-          "Please enter a product name."
-      };
-    }
-
-    if (!data.category) {
-      return {
-        valid: false,
-        message:
-          "Please select a category."
-      };
-    }
-
-    if (!data.description) {
-      return {
-        valid: false,
-        message:
-          "Please enter a product description."
-      };
-    }
-
-    if (
-      !Number.isFinite(
-        data.price
-      ) ||
-      data.price < 0
-    ) {
-      return {
-        valid: false,
-        message:
-          "Please enter a valid price."
-      };
-    }
-
-    return {
-      valid: true,
-      message: ""
-    };
-  }
-
-  async function createProduct(
-    formData
-  ) {
-    /*
-     * Create the database row first.
-     * This gives us the product ID needed
-     * to create a unique Storage folder.
-     */
-    const { data, error } =
-      await supabaseClient
-        .from("products")
-        .insert({
-          name: formData.name,
-          category:
-            formData.category,
-          price: formData.price,
-          material:
-            formData.material,
-          sku: formData.sku,
-          description:
-            formData.description,
-          is_published:
-            formData.is_published,
-          featured:
-            formData.featured,
-          images: [],
-          image_url: ""
-        })
-        .select()
-        .single();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data || !data.id) {
-      throw new Error(
-        "Product was created but no product ID was returned."
-      );
-    }
-
-    editingProductId =
-      String(data.id);
-
-    elements.productId.value =
-      editingProductId;
-
-    /*
-     * Upload newly selected images.
-     */
-    if (selectedFiles.length) {
-      const uploadedImages =
-        await uploadImages(
-          editingProductId
-        );
-
-      const imageUrl =
-        uploadedImages[0]?.url ||
-        "";
-
-      const { error: updateError } =
-        await supabaseClient
-          .from("products")
-          .update({
-            images:
-              uploadedImages,
-            image_url:
-              imageUrl,
-            updated_at:
-              new Date().toISOString()
-          })
-          .eq(
-            "id",
-            editingProductId
-          );
-
-      if (updateError) {
-        throw updateError;
-      }
-    }
-  }
-
-  async function updateProduct(
-    formData
-  ) {
-    if (!editingProductId) {
-      throw new Error(
-        "No product selected for editing."
-      );
-    }
-
-    /*
-     * Upload any new images first.
-     */
-    let uploadedImages = [];
-
-    if (selectedFiles.length) {
-      uploadedImages =
-        await uploadImages(
-          editingProductId
-        );
-    }
-
-    const combinedImages =
-      normalizeImageObjects(
-        existingImages
-      ).concat(
-        uploadedImages
-      );
-
-    const imageUrl =
-      combinedImages[0]?.url ||
-      "";
-
-    const { error } =
-      await supabaseClient
-        .from("products")
-        .update({
-          name: formData.name,
-          category:
-            formData.category,
-          price: formData.price,
-          material:
-            formData.material,
-          sku: formData.sku,
-          description:
-            formData.description,
-          is_published:
-            formData.is_published,
-          featured:
-            formData.featured,
-          images:
-            combinedImages,
-          image_url:
-            imageUrl,
-          updated_at:
-            new Date().toISOString()
-        })
-        .eq(
-          "id",
-          editingProductId
-        );
-
-    if (error) {
-      throw error;
-    }
-  }
-
-  async function uploadImages(
-    productId
-  ) {
-    if (
-      !selectedFiles.length
-    ) {
+  async function uploadSelectedImages(metal) {
+    if (!state.selectedFiles.length) {
       return [];
     }
 
-    const uploaded = [];
+    const supabase = createSupabaseClient();
 
-    for (
-      let index = 0;
-      index <
-      selectedFiles.length;
-      index++
-    ) {
-      const file =
-        selectedFiles[index];
+    const uploadedUrls = [];
 
-      showUploadMessage(
-        `Uploading image ${index + 1} of ${selectedFiles.length}...`
-      );
+    for (const file of state.selectedFiles) {
+      const extension = getFileExtension(file.name);
 
-      const extension =
-        getFileExtension(
-          file.name,
-          file.type
-        );
+      const safeMetal = normalizeMetal(metal);
 
-      const safeName =
-        createSafeFileName(
-          file.name
-        );
+      const uniqueName = [
+        safeMetal,
+        Date.now(),
+        Math.random().toString(36).slice(2, 10),
+        extension
+      ].join(".");
 
-      const path =
-        `${productId}/${Date.now()}-${index}-${safeName}.${extension}`;
+      const path = `${safeMetal}/${uniqueName}`;
 
-      const { error } =
-        await supabaseClient.storage
-          .from(
-            STORAGE_BUCKET
-          )
-          .upload(
-            path,
-            file,
-            {
-              cacheControl:
-                "3600",
-              upsert: false,
-              contentType:
-                file.type
-            }
-          );
+      const { error } = await supabase.storage
+        .from(CONFIG.storageBucket)
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
+        });
 
       if (error) {
         throw new Error(
-          `Image upload failed for ${file.name}: ${getErrorMessage(
-            error
-          )}`
+          `Unable to upload ${file.name}: ${error.message}`
         );
       }
 
-      const { data } =
-        supabaseClient.storage
-          .from(
-            STORAGE_BUCKET
-          )
-          .getPublicUrl(
-            path
-          );
+      const {
+        data: publicData
+      } = supabase.storage
+        .from(CONFIG.storageBucket)
+        .getPublicUrl(path);
 
-      const publicUrl =
-        data?.publicUrl || "";
+      const publicUrl = publicData?.publicUrl || "";
 
       if (!publicUrl) {
         throw new Error(
-          `Could not generate a public URL for ${file.name}.`
+          `Image ${file.name} uploaded but its public URL could not be created.`
         );
       }
 
-      uploaded.push({
-        url: publicUrl,
-        path
-      });
+      uploadedUrls.push(publicUrl);
     }
 
-    clearUploadMessage();
-
-    return uploaded;
+    return uploadedUrls;
   }
 
-  function normalizeImageObjects(
-    images
-  ) {
-    return (
-      Array.isArray(images)
-        ? images
-        : []
-    )
-      .map(function (image) {
-        if (
-          typeof image ===
-          "string"
-        ) {
-          return {
-            url: image,
-            path: ""
-          };
-        }
+  function getFileExtension(fileName) {
+    const name = String(fileName || "");
+    const lastDot = name.lastIndexOf(".");
 
-        if (
-          image &&
-          typeof image ===
-            "object"
-        ) {
-          return {
-            url:
-              image.url ||
-              image.publicUrl ||
-              "",
-            path:
-              image.path ||
-              ""
-          };
-        }
-
-        return null;
-      })
-      .filter(function (image) {
-        return (
-          image &&
-          image.url
-        );
-      });
-  }
-
-  function getProductImages(
-    product
-  ) {
-    if (
-      !product ||
-      !Array.isArray(
-        product.images
-      )
-    ) {
-      if (
-        product?.image_url
-      ) {
-        return [
-          {
-            url:
-              product.image_url,
-            path: ""
-          }
-        ];
-      }
-
-      return [];
+    if (lastDot === -1) {
+      return "jpg";
     }
 
-    const images =
-      normalizeImageObjects(
-        product.images
-      );
-
-    if (
-      !images.length &&
-      product.image_url
-    ) {
-      return [
-        {
-          url:
-            product.image_url,
-          path: ""
-        }
-      ];
-    }
-
-    return images;
+    return name
+      .slice(lastDot + 1)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "jpg";
   }
 
-  async function toggleProductPublished(
-    productId
+  function getRemovedExistingImages(
+    oldProduct,
+    remainingImages
   ) {
-    const product =
-      allProducts.find(
-        function (item) {
-          return (
-            String(item.id) ===
-            String(productId)
-          );
-        }
-      );
+    const oldImages = Array.isArray(oldProduct.images)
+      ? oldProduct.images
+      : [];
 
-    if (!product) {
+    const remainingSet = new Set(
+      remainingImages || []
+    );
+
+    return oldImages.filter(
+      (image) => image && !remainingSet.has(image)
+    );
+  }
+
+  /* ==========================================================
+     STORAGE DELETE
+     ========================================================== */
+
+  async function deleteStorageImages(images) {
+    if (!Array.isArray(images) || !images.length) {
       return;
     }
 
-    try {
-      const newStatus =
-        !product.is_published;
+    const supabase = createSupabaseClient();
 
-      const { error } =
-        await supabaseClient
-          .from("products")
-          .update({
-            is_published:
-              newStatus,
-            updated_at:
-              new Date().toISOString()
-          })
-          .eq(
-            "id",
-            productId
-          );
+    const paths = images
+      .map(getStoragePathFromUrl)
+      .filter(Boolean);
+
+    if (!paths.length) {
+      return;
+    }
+
+    const { error } = await supabase.storage
+      .from(CONFIG.storageBucket)
+      .remove(paths);
+
+    if (error) {
+      console.warn(
+        "Some storage images could not be deleted:",
+        error
+      );
+    }
+  }
+
+  function getStoragePathFromUrl(url) {
+    if (!url) {
+      return "";
+    }
+
+    try {
+      const parsed = new URL(url);
+
+      const marker =
+        `/storage/v1/object/public/${CONFIG.storageBucket}/`;
+
+      const markerIndex =
+        parsed.pathname.indexOf(marker);
+
+      if (markerIndex === -1) {
+        return "";
+      }
+
+      return decodeURIComponent(
+        parsed.pathname.slice(
+          markerIndex + marker.length
+        )
+      );
+    } catch (error) {
+      console.warn(
+        "Could not parse storage URL:",
+        url,
+        error
+      );
+
+      return "";
+    }
+  }
+
+  /* ==========================================================
+     PUBLISH / UNPUBLISH
+     ========================================================== */
+
+  async function togglePublished(productId) {
+    const product = state.products.find(
+      (item) =>
+        String(item.id) === String(productId)
+    );
+
+    if (!product) {
+      showToast(
+        "Product could not be found.",
+        "error"
+      );
+      return;
+    }
+
+    const nextPublished = !product.is_published;
+
+    try {
+      const supabase = createSupabaseClient();
+
+      const { data, error } = await supabase
+        .from("products")
+        .update({
+          is_published: nextPublished,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", product.id)
+        .select("*")
+        .single();
 
       if (error) {
         throw error;
       }
 
-      product.is_published =
-        newStatus;
+      const updatedProduct = normalizeProduct(data);
 
-      product.updated_at =
-        new Date().toISOString();
+      const index = state.products.findIndex(
+        (item) =>
+          String(item.id) === String(product.id)
+      );
 
-      updateStats();
+      if (index >= 0) {
+        state.products[index] = updatedProduct;
+      }
 
-      applyAdminFilters();
+      renderProducts();
+      renderDashboard();
 
       showToast(
-        newStatus
+        nextPublished
           ? "Product published."
-          : "Product hidden.",
+          : "Product unpublished.",
         "success"
       );
+
     } catch (error) {
       console.error(
-        "Publish status update failed:",
+        "Publish toggle error:",
         error
       );
 
       showToast(
-        getErrorMessage(error),
+        error?.message ||
+          "Unable to update product status.",
         "error"
       );
     }
   }
 
-  function openDeleteConfirmation(
-    productId
-  ) {
-    const product =
-      allProducts.find(
-        function (item) {
-          return (
-            String(item.id) ===
-            String(productId)
-          );
-        }
-      );
+  /* ==========================================================
+     DELETE
+     ========================================================== */
+
+  function openDeleteModal(productId) {
+    const product = state.products.find(
+      (item) =>
+        String(item.id) === String(productId)
+    );
 
     if (!product) {
+      showToast(
+        "Product could not be found.",
+        "error"
+      );
       return;
     }
 
-    deleteTargetId =
-      product.id;
+    state.pendingDeleteProduct = product;
 
-    if (elements.confirmMessage) {
-      elements.confirmMessage.textContent =
-        `"${product.name}" will be permanently deleted along with its stored images.`;
+    const modal = getElement("confirmModal");
+    const title = getElement("confirmModalTitle");
+    const text = getElement("confirmModalText");
+
+    if (title) {
+      title.textContent = "Delete Product";
     }
 
-    if (elements.confirmModal) {
-      elements.confirmModal.classList.add(
-        "active"
-      );
-
-      elements.confirmModal.setAttribute(
-        "aria-hidden",
-        "false"
-      );
+    if (text) {
+      text.textContent =
+        `Are you sure you want to delete "${product.name}"? ` +
+        "This action cannot be undone.";
     }
-  }
 
-  function closeConfirmModal() {
-    deleteTargetId = null;
-
-    if (elements.confirmModal) {
-      elements.confirmModal.classList.remove(
-        "active"
-      );
-
-      elements.confirmModal.setAttribute(
-        "aria-hidden",
-        "true"
-      );
+    if (modal) {
+      modal.classList.add("active");
+      modal.setAttribute("aria-hidden", "false");
     }
   }
 
-  async function confirmDeleteProduct() {
-    if (!deleteTargetId) {
-      closeConfirmModal();
+  function closeDeleteModal() {
+    const modal = getElement("confirmModal");
+
+    state.pendingDeleteProduct = null;
+
+    if (modal) {
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  async function confirmDelete() {
+    const product = state.pendingDeleteProduct;
+
+    if (!product) {
+      closeDeleteModal();
       return;
     }
 
-    const productId =
-      deleteTargetId;
+    const deleteButton = getElement(
+      "confirmDeleteButton"
+    );
 
-    setDeleteLoading(true);
+    setButtonLoading(
+      deleteButton,
+      true,
+      "Deleting..."
+    );
 
     try {
-      const product =
-        allProducts.find(
-          function (item) {
-            return (
-              String(item.id) ===
-              String(productId)
-            );
-          }
-        );
+      const supabase = createSupabaseClient();
 
-      if (product) {
-        const images =
-          getProductImages(
-            product
-          );
-
-        const paths =
-          images
-            .map(function (image) {
-              return image.path;
-            })
-            .filter(Boolean);
-
-        if (paths.length) {
-          const { error } =
-            await supabaseClient
-              .storage
-              .from(
-                STORAGE_BUCKET
-              )
-              .remove(paths);
-
-          if (error) {
-            console.warn(
-              "Some product images could not be removed:",
-              error
-            );
-          }
-        }
-      }
-
-      const { error } =
-        await supabaseClient
-          .from("products")
-          .delete()
-          .eq(
-            "id",
-            productId
-          );
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", product.id);
 
       if (error) {
         throw error;
       }
 
-      allProducts =
-        allProducts.filter(
-          function (item) {
-            return (
-              String(item.id) !==
-              String(productId)
-            );
-          }
+      if (Array.isArray(product.images)) {
+        await deleteStorageImages(
+          product.images
         );
+      }
 
-      updateStats();
+      if (product.image_url) {
+        await deleteStorageImages([
+          product.image_url
+        ]);
+      }
 
-      applyAdminFilters();
+      state.products = state.products.filter(
+        (item) =>
+          String(item.id) !== String(product.id)
+      );
 
-      closeConfirmModal();
+      closeDeleteModal();
+
+      renderProducts();
+      renderDashboard();
 
       showToast(
         "Product deleted successfully.",
         "success"
       );
+
     } catch (error) {
       console.error(
-        "Product deletion failed:",
+        "Delete product error:",
         error
       );
 
       showToast(
-        getErrorMessage(error),
+        error?.message ||
+          "Unable to delete the product.",
         "error"
       );
+
     } finally {
-      setDeleteLoading(false);
-    }
-  }
-
-  function setDeleteLoading(
-    isLoading
-  ) {
-    if (!elements.confirmDelete) {
-      return;
-    }
-
-    elements.confirmDelete.disabled =
-      isLoading;
-
-    elements.confirmDelete.textContent =
-      isLoading
-        ? "Deleting..."
-        : "Delete";
-  }
-
-  function setupDescriptionCounter() {
-    updateDescriptionCount();
-  }
-
-  function updateDescriptionCount() {
-    if (
-      !elements.productDescription ||
-      !elements.descriptionCount
-    ) {
-      return;
-    }
-
-    const length =
-      elements.productDescription
-        .value.length;
-
-    elements.descriptionCount.textContent =
-      length;
-  }
-
-  function setSaveLoading(
-    isLoading
-  ) {
-    if (!elements.saveProductButton) {
-      return;
-    }
-
-    elements.saveProductButton.disabled =
-      isLoading;
-
-    elements.saveProductButton.textContent =
-      isLoading
-        ? "Saving..."
-        : editingProductId
-        ? "Update Product"
-        : "Save Product";
-  }
-
-  function showEditorMessage(
-    message,
-    type
-  ) {
-    if (
-      !elements.productFormMessage
-    ) {
-      return;
-    }
-
-    elements.productFormMessage.textContent =
-      message || "";
-
-    elements.productFormMessage.className =
-      "form-message editor-message";
-
-    if (type) {
-      elements.productFormMessage.classList.add(
-        type
+      setButtonLoading(
+        deleteButton,
+        false
       );
     }
   }
 
-  function clearEditorMessage() {
-    showEditorMessage(
-      "",
-      ""
-    );
-  }
+  /* ==========================================================
+     MODALS
+     ========================================================== */
 
-  function showUploadMessage(
-    message
-  ) {
-    if (!elements.uploadMessage) {
-      return;
-    }
-
-    elements.uploadMessage.textContent =
-      message || "";
-  }
-
-  function clearUploadMessage() {
-    showUploadMessage("");
-  }
-
-  function showTableLoading() {
-    if (!elements.productTableBody) {
-      return;
-    }
-
-    elements.productTableBody.innerHTML = `
-      <tr>
-        <td
-          colspan="6"
-          class="table-loading"
-        >
-          <div class="loading-spinner"></div>
-          Loading products...
-        </td>
-      </tr>
-    `;
-
-    if (elements.adminEmptyState) {
-      elements.adminEmptyState.hidden =
-        true;
-    }
-  }
-
-  function showTableError(
-    message
-  ) {
-    if (!elements.productTableBody) {
-      return;
-    }
-
-    elements.productTableBody.innerHTML = `
-      <tr>
-        <td
-          colspan="6"
-          class="table-loading"
-        >
-          <strong>Could not load products.</strong>
-          <br>
-          ${escapeHTML(message)}
-        </td>
-      </tr>
-    `;
-  }
-
-  function openSidebar() {
-    if (!elements.sidebar) {
-      return;
-    }
-
-    elements.sidebar.classList.add(
-      "open"
-    );
-
-    elements.sidebarOverlay?.classList.add(
-      "active"
-    );
-  }
-
-  function closeSidebar() {
-    if (!elements.sidebar) {
-      return;
-    }
-
-    elements.sidebar.classList.remove(
-      "open"
-    );
-
-    elements.sidebarOverlay?.classList.remove(
-      "active"
-    );
-  }
-
-  let lastToastMessage = "";
-
-  function showToast(
-    message,
-    type
-  ) {
-    if (!elements.adminToast) {
-      return;
-    }
+  function bindModalControls() {
+    const closeButton = getElement("confirmModalClose");
 
     if (
-      message ===
-      lastToastMessage
+      closeButton &&
+      closeButton.dataset.bound !== "true"
     ) {
-      return;
-    }
-
-    lastToastMessage =
-      message;
-
-    clearTimeout(
-      toastTimer
-    );
-
-    elements.adminToast.textContent =
-      message;
-
-    elements.adminToast.className =
-      "admin-toast";
-
-    if (type) {
-      elements.adminToast.classList.add(
-        type
+      closeButton.dataset.bound = "true";
+      closeButton.addEventListener(
+        "click",
+        closeDeleteModal
       );
     }
 
-    elements.adminToast.classList.add(
-      "show"
+    const backdrop = $(
+      ".admin-modal-backdrop"
     );
-
-    toastTimer = setTimeout(
-      function () {
-        elements.adminToast.classList.remove(
-          "show"
-        );
-
-        lastToastMessage = "";
-      },
-      3200
-    );
-  }
-
-  function formatCategory(
-    category
-  ) {
-    const names = {
-      rings: "Rings",
-      necklaces: "Necklaces",
-      earrings: "Earrings",
-      bangles: "Bangles",
-      bracelets: "Bracelets",
-      chains: "Chains",
-      other: "Other"
-    };
-
-    return (
-      names[
-        String(
-          category || ""
-        ).toLowerCase()
-      ] ||
-      "Other"
-    );
-  }
-
-  function formatCurrency(
-    amount
-  ) {
-    const numericAmount =
-      Number(amount);
 
     if (
-      !Number.isFinite(
-        numericAmount
-      )
+      backdrop &&
+      backdrop.dataset.bound !== "true"
     ) {
-      return "₹0";
+      backdrop.dataset.bound = "true";
+      backdrop.addEventListener(
+        "click",
+        closeDeleteModal
+      );
     }
 
-    return new Intl.NumberFormat(
-      "en-IN",
-      {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0
+    const cancelButton = getElement(
+      "cancelDeleteButton"
+    );
+
+    if (
+      cancelButton &&
+      cancelButton.dataset.bound !== "true"
+    ) {
+      cancelButton.dataset.bound = "true";
+      cancelButton.addEventListener(
+        "click",
+        closeDeleteModal
+      );
+    }
+
+    const confirmButton = getElement(
+      "confirmDeleteButton"
+    );
+
+    if (
+      confirmButton &&
+      confirmButton.dataset.bound !== "true"
+    ) {
+      confirmButton.dataset.bound = "true";
+      confirmButton.addEventListener(
+        "click",
+        confirmDelete
+      );
+    }
+
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Escape") {
+          closeDeleteModal();
+          closeMobileSidebar();
+        }
       }
-    ).format(
-      numericAmount
     );
   }
 
-  function formatDate(
-    value
-  ) {
-    if (!value) {
-      return "—";
-    }
+  /* ==========================================================
+     WINDOW RESIZE
+     ========================================================== */
 
-    const date =
-      new Date(value);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return "—";
-    }
-
-    return new Intl.DateTimeFormat(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
+  function bindResizeHandling() {
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 900) {
+        closeMobileSidebar();
       }
-    ).format(date);
+    });
   }
 
-  function getFileExtension(
-    fileName,
-    mimeType
-  ) {
-    const extension =
-      String(
-        fileName || ""
-      )
-        .split(".")
-        .pop()
-        .toLowerCase();
+  /* ==========================================================
+     PUBLIC API
+     ========================================================== */
 
-    if (
-      ["jpg", "jpeg", "png", "webp"].includes(
-        extension
-      )
-    ) {
-      return extension ===
-        "jpeg"
-        ? "jpg"
-        : extension;
-    }
+  window.KrishnaJewellersAdmin = {
+    refreshProducts: loadProducts,
 
-    if (
-      mimeType ===
-      "image/png"
-    ) {
-      return "png";
-    }
+    getProducts: function () {
+      return [...state.products];
+    },
 
-    if (
-      mimeType ===
-      "image/webp"
-    ) {
-      return "webp";
-    }
+    getCurrentMetal: function () {
+      return state.metalMode;
+    },
 
-    return "jpg";
-  }
+    setMetal: function (metal) {
+      setMetalMode(metal, true);
+    },
 
-  function createSafeFileName(
-    fileName
-  ) {
-    const base =
-      String(
-        fileName || "image"
-      )
-        .replace(
-          /\.[^/.]+$/,
-          ""
-        )
-        .replace(
-          /[^a-zA-Z0-9_-]+/g,
-          "-"
-        )
-        .replace(
-          /^-+|-+$/g,
-          ""
-        )
-        .toLowerCase();
+    openAddProduct: function () {
+      startNewProduct();
+    },
 
-    return (
-      base ||
-      "image"
-    );
-  }
+    editProduct: function (productId) {
+      editProduct(productId);
+    },
 
-  function getErrorMessage(
-    error
-  ) {
-    if (!error) {
-      return "An unknown error occurred.";
-    }
+    logout: handleLogout
+  };
 
-    const message =
-      String(
-        error.message ||
-          error.error_description ||
-          error.msg ||
-          ""
-      ).trim();
+  /* ==========================================================
+     START
+     ========================================================== */
 
-    if (message) {
-      return message;
-    }
-
-    return "An unexpected error occurred.";
-  }
-
-  function escapeHTML(
-    value
-  ) {
-    return String(
-      value ?? ""
-    )
-      .replace(
-        /&/g,
-        "&amp;"
-      )
-      .replace(
-        /</g,
-        "&lt;"
-      )
-      .replace(
-        />/g,
-        "&gt;"
-      )
-      .replace(
-        /"/g,
-        "&quot;"
-      )
-      .replace(
-        /'/g,
-        "&#039;"
-      );
-  }
-
-  function escapeAttribute(
-    value
-  ) {
-    return escapeHTML(
-      value
-    );
-  }
-
-  function debounce(
-    callback,
-    delay
-  ) {
-    let timer = null;
-
-    return function () {
-      const context =
-        this;
-
-      const args =
-        arguments;
-
-      clearTimeout(
-        timer
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      bindResizeHandling();
+      await initializeAuth();
+    } catch (error) {
+      console.error(
+        "Admin initialization error:",
+        error
       );
 
-      timer = setTimeout(
-        function () {
-          callback.apply(
-            context,
-            args
-          );
-        },
-        delay
+      showLoginScreen();
+
+      setLoginMessage(
+        error?.message ||
+          "Unable to initialize the admin panel.",
+        "error"
       );
-    };
-  }
+    }
+  });
 })();
