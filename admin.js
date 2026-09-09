@@ -4,8 +4,11 @@
   const CONFIG = {
     storageBucket: "jewellery",
     maxImageSize: 6 * 1024 * 1024,
-    allowedImageTypes: ["image/jpeg", "image/png", "image/webp"],
-    defaultMetal: "gold"
+    allowedImageTypes: [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ]
   };
 
   const CATEGORIES = {
@@ -20,7 +23,6 @@
       ["double-locket", "Double Locket"],
       ["other", "Other"]
     ],
-
     silver: [
       ["kids-payal", "Kids Payal"],
       ["adult-payal", "Adult Payal"],
@@ -52,14 +54,17 @@
     initialized: false
   };
 
-  const $ = (selector, parent = document) =>
-    parent.querySelector(selector);
+  function $(selector, parent = document) {
+    return parent.querySelector(selector);
+  }
 
-  const $$ = (selector, parent = document) =>
-    Array.from(parent.querySelectorAll(selector));
+  function $$(selector, parent = document) {
+    return Array.from(parent.querySelectorAll(selector));
+  }
 
-  const byId = (id) =>
-    document.getElementById(id);
+  function byId(id) {
+    return document.getElementById(id);
+  }
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -82,7 +87,7 @@
       : "Gold";
   }
 
-  function categoryList(metal) {
+  function getCategories(metal) {
     return CATEGORIES[normalizeMetal(metal)];
   }
 
@@ -95,8 +100,8 @@
 
     const currentMetal = normalizeMetal(metal);
 
-    if (currentMetal === "gold") {
-      const aliases = {
+    const aliases = {
+      gold: {
         ring: "ladies-rings",
         rings: "ladies-rings",
         "ladies-ring": "ladies-rings",
@@ -109,44 +114,36 @@
         "ladies-chain": "ladies-chains",
         "gents-chain": "gents-chains",
         locket: "single-locket",
-        lockets: "single-locket",
-        bangle: "other",
-        bangles: "other",
-        bracelet: "other",
-        bracelets: "other"
-      };
-
-      return aliases[raw] || (
-        categoryList("gold").some(([value]) => value === raw)
-          ? raw
-          : "other"
-      );
-    }
-
-    const aliases = {
-      payal: "adult-payal",
-      "kid-payal": "kids-payal",
-      locket: "lockets",
-      bracelet: "male-bracelets",
-      bracelets: "male-bracelets",
-      "male-bracelet": "male-bracelets",
-      "female-bracelet": "female-bracelets",
-      chain: "male-chains",
-      chains: "male-chains",
-      "male-chain": "male-chains",
-      "female-chain": "female-chains"
+        lockets: "single-locket"
+      },
+      silver: {
+        payal: "adult-payal",
+        "kid-payal": "kids-payal",
+        locket: "lockets",
+        bracelet: "male-bracelets",
+        bracelets: "male-bracelets",
+        "male-bracelet": "male-bracelets",
+        "female-bracelet": "female-bracelets",
+        chain: "male-chains",
+        chains: "male-chains",
+        "male-chain": "male-chains",
+        "female-chain": "female-chains"
+      }
     };
 
-    return aliases[raw] || (
-      categoryList("silver").some(([value]) => value === raw)
-        ? raw
-        : "other"
-    );
+    if (aliases[currentMetal][raw]) {
+      return aliases[currentMetal][raw];
+    }
+
+    const valid = getCategories(currentMetal)
+      .some(([category]) => category === raw);
+
+    return valid ? raw : "other";
   }
 
   function categoryLabel(category) {
     for (const metal of ["gold", "silver"]) {
-      const found = categoryList(metal)
+      const found = getCategories(metal)
         .find(([value]) => value === category);
 
       if (found) {
@@ -156,7 +153,7 @@
 
     return String(category || "Other")
       .replace(/[-_]/g, " ")
-      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+      .replace(/\b\w/g, letter => letter.toUpperCase());
   }
 
   function normalizeProduct(product) {
@@ -166,7 +163,7 @@
 
     if (Array.isArray(product?.images)) {
       images = product.images
-        .map((image) => {
+        .map(image => {
           if (typeof image === "string") {
             return image;
           }
@@ -202,14 +199,14 @@
     };
   }
 
-  function priceLabel(price) {
-    const number = Number(price);
+  function formatPrice(price) {
+    const value = Number(price);
 
-    if (!Number.isFinite(number) || number <= 0) {
+    if (!Number.isFinite(value) || value <= 0) {
       return "Price on enquiry";
     }
 
-    return `₹${number.toLocaleString("en-IN")}`;
+    return `₹${value.toLocaleString("en-IN")}`;
   }
 
   function formatDate(value) {
@@ -230,9 +227,9 @@
     });
   }
 
-  /* ==========================================================
+  /* =========================================================
      SUPABASE
-  ========================================================== */
+  ========================================================= */
 
   function createSupabase() {
     if (state.supabase) {
@@ -244,7 +241,7 @@
       typeof window.supabase.createClient !== "function"
     ) {
       throw new Error(
-        "Supabase library could not load. Please refresh the page."
+        "Supabase could not load. Please refresh the page."
       );
     }
 
@@ -271,43 +268,39 @@
     return state.supabase;
   }
 
-  /* ==========================================================
-     UI
-  ========================================================== */
+  /* =========================================================
+     LOGIN
+  ========================================================= */
 
   function showLoginScreen() {
-    const login = byId("loginScreen");
-    const app = byId("adminApp");
+    const loginScreen = byId("loginScreen");
+    const adminApp = byId("adminApp");
 
-    if (login) {
-      login.style.display = "flex";
+    if (loginScreen) {
+      loginScreen.style.display = "flex";
     }
 
-    if (app) {
-      app.hidden = true;
-      app.classList.add("is-hidden");
-      app.style.display = "none";
+    if (adminApp) {
+      adminApp.hidden = true;
+      adminApp.setAttribute("hidden", "");
+      adminApp.classList.add("is-hidden");
+      adminApp.style.display = "none";
     }
   }
 
   function showAdminApp() {
-    const login = byId("loginScreen");
-    const app = byId("adminApp");
+    const loginScreen = byId("loginScreen");
+    const adminApp = byId("adminApp");
 
-    if (login) {
-      login.style.display = "none";
+    if (loginScreen) {
+      loginScreen.style.display = "none";
     }
 
-    if (app) {
-      /*
-       * IMPORTANT:
-       * admin.html uses the native hidden attribute.
-       * Removing only a CSS class is not enough.
-       */
-      app.hidden = false;
-      app.removeAttribute("hidden");
-      app.classList.remove("is-hidden");
-      app.style.display = "grid";
+    if (adminApp) {
+      adminApp.hidden = false;
+      adminApp.removeAttribute("hidden");
+      adminApp.classList.remove("is-hidden");
+      adminApp.style.display = "";
     }
   }
 
@@ -335,37 +328,7 @@
       `form-message${type ? ` ${type}` : ""}`;
   }
 
-  function showToast(message, type = "success") {
-    const toast = byId("adminToast");
-    const text = byId("adminToastMessage");
-
-    if (!toast || !text) {
-      return;
-    }
-
-    text.textContent = message;
-
-    toast.classList.remove(
-      "success",
-      "error",
-      "warning",
-      "show"
-    );
-
-    toast.classList.add(type);
-
-    requestAnimationFrame(() => {
-      toast.classList.add("show");
-    });
-
-    clearTimeout(state.toastTimer);
-
-    state.toastTimer = setTimeout(() => {
-      toast.classList.remove("show");
-    }, 3200);
-  }
-
-  function buttonLoading(button, loading, text) {
+  function setButtonLoading(button, loading, loadingText) {
     if (!button) {
       return;
     }
@@ -378,8 +341,8 @@
 
       button.disabled = true;
 
-      if (text) {
-        button.textContent = text;
+      if (loadingText) {
+        button.textContent = loadingText;
       }
 
       return;
@@ -395,15 +358,37 @@
     }
   }
 
-  /* ==========================================================
-     AUTH
-  ========================================================== */
+  function showToast(message, type = "success") {
+    const toast = byId("adminToast");
+    const text = byId("adminToastMessage");
 
-  async function verifyAdmin(userId) {
-    if (!userId) {
-      return false;
+    if (!toast || !text) {
+      return;
     }
 
+    text.textContent = message;
+
+    toast.classList.remove(
+      "show",
+      "success",
+      "error",
+      "warning"
+    );
+
+    toast.classList.add(type);
+
+    requestAnimationFrame(() => {
+      toast.classList.add("show");
+    });
+
+    clearTimeout(state.toastTimer);
+
+    state.toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3200);
+  }
+
+  async function verifyAdmin(userId) {
     const supabase = createSupabase();
 
     const { data, error } = await supabase
@@ -419,7 +404,7 @@
     return Boolean(data);
   }
 
-  async function login(event) {
+  async function handleLogin(event) {
     event.preventDefault();
 
     const email = String(
@@ -440,8 +425,16 @@
       return;
     }
 
-    buttonLoading(button, true, "Signing in...");
-    setLoginMessage("Signing in...", "info");
+    setButtonLoading(
+      button,
+      true,
+      "Signing in..."
+    );
+
+    setLoginMessage(
+      "Signing in...",
+      "info"
+    );
 
     try {
       const supabase = createSupabase();
@@ -462,11 +455,10 @@
         );
       }
 
-      const admin = await verifyAdmin(
-        data.user.id
-      );
+      const isAdmin =
+        await verifyAdmin(data.user.id);
 
-      if (!admin) {
+      if (!isAdmin) {
         await supabase.auth.signOut();
 
         throw new Error(
@@ -476,26 +468,29 @@
 
       state.session = data.session;
 
-      await initializeAdmin(data.session);
-
-      setLoginMessage(
-        "Login successful.",
-        "success"
+      await initializeAdmin(
+        data.session
       );
     } catch (error) {
-      console.error("Admin login error:", error);
+      console.error(
+        "Login error:",
+        error
+      );
 
       setLoginMessage(
         error?.message ||
-          "Unable to sign in. Please check your email and password.",
+          "Unable to sign in.",
         "error"
       );
     } finally {
-      buttonLoading(button, false);
+      setButtonLoading(
+        button,
+        false
+      );
     }
   }
 
-  async function logout() {
+  async function handleLogout() {
     try {
       const supabase = createSupabase();
 
@@ -503,6 +498,7 @@
 
       state.session = null;
       state.products = [];
+      state.editingProductId = null;
 
       showLoginScreen();
 
@@ -520,55 +516,55 @@
     }
   }
 
-  /* ==========================================================
+  /* =========================================================
      NAVIGATION
-  ========================================================== */
+  ========================================================= */
 
   function getViewButtons() {
     return $$("[data-admin-view]");
   }
 
-  function getViewSection(view) {
-    const map = {
+  function getSection(view) {
+    const sections = {
       dashboard: byId("dashboardView"),
       products: byId("productsView"),
       "add-product": byId("addProductView")
     };
 
-    return map[view] || null;
+    return sections[view] || null;
   }
 
   function showView(view) {
-    const allowed = [
+    const validViews = [
       "dashboard",
       "products",
       "add-product"
     ];
 
-    if (!allowed.includes(view)) {
+    if (!validViews.includes(view)) {
       view = "dashboard";
     }
 
     state.currentView = view;
 
-    const dashboard = byId("dashboardView");
-    const products = byId("productsView");
-    const addProduct = byId("addProductView");
+    const sections = [
+      byId("dashboardView"),
+      byId("productsView"),
+      byId("addProductView")
+    ].filter(Boolean);
 
-    [dashboard, products, addProduct]
-      .filter(Boolean)
-      .forEach((section) => {
-        const active =
-          section === getViewSection(view);
+    sections.forEach(section => {
+      const isActive =
+        section === getSection(view);
 
-        section.hidden = !active;
-        section.classList.toggle(
-          "active",
-          active
-        );
-      });
+      section.hidden = !isActive;
+      section.classList.toggle(
+        "active",
+        isActive
+      );
+    });
 
-    getViewButtons().forEach((button) => {
+    getViewButtons().forEach(button => {
       button.classList.toggle(
         "active",
         button.dataset.adminView === view
@@ -584,57 +580,78 @@
     if (view === "products") {
       renderProducts();
     }
+
+    closeMobileSidebar();
   }
 
   function updateHeader(view) {
     const title = byId("adminPageTitle");
     const eyebrow = byId("adminPageEyebrow");
 
-    const data = {
+    const pages = {
       dashboard: {
-        eyebrow: "Dashboard",
-        title: "Jewellery Catalogue"
+        title: "Jewellery Catalogue",
+        eyebrow: "Dashboard"
       },
       products: {
-        eyebrow: "Catalogue Manager",
-        title: "Manage Jewellery"
+        title: "Manage Jewellery",
+        eyebrow: "Catalogue Manager"
       },
       "add-product": {
-        eyebrow: state.editingProductId
-          ? "Edit Jewellery"
-          : "New Jewellery",
         title: state.editingProductId
           ? "Edit Product"
-          : "Add Product"
+          : "Add Product",
+        eyebrow: state.editingProductId
+          ? "Edit Jewellery"
+          : "New Jewellery"
       }
     };
 
-    const current = data[view];
+    const page = pages[view];
+
+    if (!page) {
+      return;
+    }
 
     if (title) {
-      title.textContent = current.title;
+      title.textContent =
+        page.title;
     }
 
     if (eyebrow) {
-      eyebrow.textContent = current.eyebrow;
+      eyebrow.textContent =
+        page.eyebrow;
+    }
+  }
+
+  function closeMobileSidebar() {
+    const sidebar =
+      $(".admin-sidebar");
+
+    if (sidebar) {
+      sidebar.classList.remove(
+        "mobile-open",
+        "open"
+      );
     }
   }
 
   function bindNavigation() {
-    getViewButtons().forEach((button) => {
+    getViewButtons().forEach(button => {
       if (button.dataset.bound === "true") {
         return;
       }
 
       button.dataset.bound = "true";
 
-      button.addEventListener("click", () => {
-        showView(
-          button.dataset.adminView
-        );
-
-        closeMobileMenu();
-      });
+      button.addEventListener(
+        "click",
+        () => {
+          showView(
+            button.dataset.adminView
+          );
+        }
+      );
     });
 
     const logoutButton =
@@ -645,9 +662,10 @@
       logoutButton.dataset.bound !== "true"
     ) {
       logoutButton.dataset.bound = "true";
+
       logoutButton.addEventListener(
         "click",
-        logout
+        handleLogout
       );
     }
 
@@ -659,66 +677,55 @@
       headerLogout.dataset.bound !== "true"
     ) {
       headerLogout.dataset.bound = "true";
+
       headerLogout.addEventListener(
         "click",
-        logout
+        handleLogout
       );
     }
 
-    const mobileButton =
+    const mobileToggle =
       byId("mobileSidebarToggle");
 
     if (
-      mobileButton &&
-      mobileButton.dataset.bound !== "true"
+      mobileToggle &&
+      mobileToggle.dataset.bound !== "true"
     ) {
-      mobileButton.dataset.bound = "true";
+      mobileToggle.dataset.bound = "true";
 
-      mobileButton.addEventListener(
+      mobileToggle.addEventListener(
         "click",
-        toggleMobileMenu
+        () => {
+          const sidebar =
+            $(".admin-sidebar");
+
+          if (sidebar) {
+            sidebar.classList.toggle(
+              "mobile-open"
+            );
+          }
+        }
       );
     }
   }
 
-  function toggleMobileMenu() {
-    const sidebar =
-      $(".admin-sidebar");
+  /* =========================================================
+     GOLD / SILVER
+  ========================================================= */
 
-    if (!sidebar) {
-      return;
-    }
-
-    sidebar.classList.toggle(
-      "mobile-open"
-    );
-  }
-
-  function closeMobileMenu() {
-    const sidebar =
-      $(".admin-sidebar");
-
-    if (sidebar) {
-      sidebar.classList.remove(
-        "mobile-open"
-      );
-    }
-  }
-
-  /* ==========================================================
-     METAL
-  ========================================================== */
-
-  function setMetalMode(metal, refresh = true) {
+  function setMetalMode(
+    metal,
+    refresh = true
+  ) {
     state.metalMode =
       normalizeMetal(metal);
 
-    const silver =
+    const isSilver =
       state.metalMode === "silver";
 
     document.body.classList.toggle(
       "admin-silver-mode",
-      silver
+      isSilver
     );
 
     const toggle =
@@ -727,12 +734,12 @@
     if (toggle) {
       toggle.classList.toggle(
         "silver",
-        silver
+        isSilver
       );
 
       toggle.setAttribute(
         "aria-pressed",
-        String(silver)
+        String(isSilver)
       );
     }
 
@@ -745,19 +752,14 @@
     if (goldLabel) {
       goldLabel.classList.toggle(
         "active",
-        !silver
+        !isSilver
       );
     }
 
     if (silverLabel) {
       silverLabel.classList.toggle(
         "active",
-        silver
-      );
-
-      silverLabel.classList.toggle(
-        "silver-active",
-        silver
+        isSilver
       );
     }
 
@@ -766,37 +768,30 @@
 
     if (sidebarLabel) {
       sidebarLabel.textContent =
-        metalLabel(state.metalMode)
-          .toUpperCase();
+        metalLabel(
+          state.metalMode
+        ).toUpperCase();
     }
 
-    const formMetal =
+    const productMetal =
       byId("productMetal");
 
     if (
-      formMetal &&
+      productMetal &&
       !state.editingProductId
     ) {
-      formMetal.value =
+      productMetal.value =
         state.metalMode;
 
-      updateCategoryOptions(
+      updateProductCategories(
         state.metalMode
       );
     }
 
-    const dashboardMetal =
-      byId("dashboardMetalName");
-
-    if (dashboardMetal) {
-      dashboardMetal.textContent =
-        metalLabel(state.metalMode);
-    }
-
     if (refresh) {
-      updateCategoryFilterOptions();
-      renderProducts();
+      updateCategoryFilter();
       renderDashboard();
+      renderProducts();
     }
   }
 
@@ -823,7 +818,7 @@
     }
 
     $$("[data-product-metal]")
-      .forEach((button) => {
+      .forEach(button => {
         if (
           button.dataset.bound === "true"
         ) {
@@ -845,7 +840,7 @@
                 : "all";
 
             $$("[data-product-metal]")
-              .forEach((item) => {
+              .forEach(item => {
                 item.classList.toggle(
                   "active",
                   item.dataset.productMetal ===
@@ -853,18 +848,18 @@
                 );
               });
 
-            updateCategoryFilterOptions();
+            updateCategoryFilter();
             renderProducts();
           }
         );
       });
   }
 
-  /* ==========================================================
-     CATEGORY
-  ========================================================== */
+  /* =========================================================
+     CATEGORIES
+  ========================================================= */
 
-  function updateCategoryOptions(
+  function updateProductCategories(
     metal,
     selected = ""
   ) {
@@ -876,28 +871,26 @@
     }
 
     const categories =
-      categoryList(metal);
+      getCategories(metal);
 
     select.innerHTML =
-      categories
-        .map(
-          ([value, label]) =>
-            `<option value="${value}">
-              ${escapeHtml(label)}
-            </option>`
-        )
-        .join("");
+      categories.map(
+        ([value, label]) =>
+          `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`
+      ).join("");
 
     if (
       categories.some(
-        ([value]) => value === selected
+        ([value]) =>
+          value === selected
       )
     ) {
-      select.value = selected;
+      select.value =
+        selected;
     }
   }
 
-  function updateCategoryFilterOptions() {
+  function updateCategoryFilter() {
     const select =
       byId("productCategoryFilter");
 
@@ -911,62 +904,41 @@
         : state.productMetalFilter;
 
     const categories =
-      categoryList(metal);
+      getCategories(metal);
 
     const previous =
       state.productCategoryFilter;
 
     select.innerHTML =
       `<option value="all">All Categories</option>` +
-      categories
-        .map(
-          ([value, label]) =>
-            `<option value="${value}">
-              ${escapeHtml(label)}
-            </option>`
-        )
-        .join("");
+      categories.map(
+        ([value, label]) =>
+          `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`
+      ).join("");
 
     if (
       previous === "all" ||
       categories.some(
-        ([value]) => value === previous
+        ([value]) =>
+          value === previous
       )
     ) {
-      select.value = previous;
+      select.value =
+        previous;
     } else {
       state.productCategoryFilter =
         "all";
 
-      select.value = "all";
+      select.value =
+        "all";
     }
   }
 
-  /* ==========================================================
-     PRODUCTS LOAD
-  ========================================================== */
+  /* =========================================================
+     LOAD PRODUCTS
+  ========================================================= */
 
   async function loadProducts() {
-    const dashboard =
-      byId("dashboardProducts");
-
-    const table =
-      byId("productsTable");
-
-    if (dashboard) {
-      dashboard.innerHTML =
-        `<div class="admin-loading">
-          Loading products...
-        </div>`;
-    }
-
-    if (table) {
-      table.innerHTML =
-        `<div class="admin-loading">
-          Loading products...
-        </div>`;
-    }
-
     try {
       const supabase =
         createSupabase();
@@ -977,7 +949,9 @@
           .select("*")
           .order(
             "created_at",
-            { ascending: false }
+            {
+              ascending: false
+            }
           );
 
       if (error) {
@@ -989,47 +963,31 @@
           ? data.map(normalizeProduct)
           : [];
 
-      updateCategoryFilterOptions();
+      updateCategoryFilter();
       renderDashboard();
       renderProducts();
     } catch (error) {
       console.error(
-        "Product loading error:",
+        "Load products error:",
         error
       );
 
       state.products = [];
 
-      const message =
-        error?.message ||
-        "Unable to load products.";
-
-      if (dashboard) {
-        dashboard.innerHTML =
-          `<div class="admin-empty-state">
-            <h3>Unable to load products</h3>
-            <p>${escapeHtml(message)}</p>
-          </div>`;
-      }
-
-      if (table) {
-        table.innerHTML =
-          `<div class="admin-empty-state">
-            <h3>Unable to load products</h3>
-            <p>${escapeHtml(message)}</p>
-          </div>`;
-      }
-
       showToast(
-        message,
+        error?.message ||
+          "Unable to load products.",
         "error"
       );
+
+      renderDashboard();
+      renderProducts();
     }
   }
 
-  /* ==========================================================
-     FILTERS
-  ========================================================== */
+  /* =========================================================
+     FILTERING
+  ========================================================= */
 
   function getFilteredProducts() {
     const search =
@@ -1038,10 +996,9 @@
         .toLowerCase();
 
     return state.products.filter(
-      (product) => {
+      product => {
         if (
-          state.productMetalFilter !==
-            "all" &&
+          state.productMetalFilter !== "all" &&
           product.metal !==
             state.productMetalFilter
         ) {
@@ -1049,8 +1006,7 @@
         }
 
         if (
-          state.productCategoryFilter !==
-            "all" &&
+          state.productCategoryFilter !== "all" &&
           product.category !==
             state.productCategoryFilter
         ) {
@@ -1058,24 +1014,21 @@
         }
 
         if (
-          state.productStatusFilter ===
-          "published" &&
+          state.productStatusFilter === "published" &&
           !product.is_published
         ) {
           return false;
         }
 
         if (
-          state.productStatusFilter ===
-          "hidden" &&
+          state.productStatusFilter === "hidden" &&
           product.is_published
         ) {
           return false;
         }
 
         if (
-          state.productStatusFilter ===
-          "featured" &&
+          state.productStatusFilter === "featured" &&
           !product.featured
         ) {
           return false;
@@ -1093,9 +1046,7 @@
             .join(" ")
             .toLowerCase();
 
-          if (
-            !searchable.includes(search)
-          ) {
+          if (!searchable.includes(search)) {
             return false;
           }
         }
@@ -1105,7 +1056,7 @@
     );
   }
 
-  function bindProductControls() {
+  function bindProductFilters() {
     const search =
       byId("productSearch");
 
@@ -1167,9 +1118,9 @@
     }
   }
 
-  /* ==========================================================
-     RENDER DASHBOARD
-  ========================================================== */
+  /* =========================================================
+     DASHBOARD
+  ========================================================= */
 
   function renderDashboard() {
     const metal =
@@ -1177,31 +1128,23 @@
 
     const products =
       state.products.filter(
-        (product) =>
+        product =>
           product.metal === metal
       );
 
     const published =
       products.filter(
-        (product) =>
+        product =>
           product.is_published
       ).length;
 
     const featured =
       products.filter(
-        (product) =>
+        product =>
           product.featured
       ).length;
 
-    const categories =
-      new Set(
-        products.map(
-          (product) =>
-            product.category
-        )
-      );
-
-    const total =
+    const totalElement =
       byId("totalProducts");
 
     const publishedElement =
@@ -1210,11 +1153,11 @@
     const featuredElement =
       byId("featuredProducts");
 
-    const categoryCount =
+    const categoryElement =
       byId("categoryCount");
 
-    if (total) {
-      total.textContent =
+    if (totalElement) {
+      totalElement.textContent =
         products.length;
     }
 
@@ -1228,15 +1171,20 @@
         featured;
     }
 
-    if (categoryCount) {
-      categoryCount.textContent =
-        categories.size;
+    if (categoryElement) {
+      categoryElement.textContent =
+        new Set(
+          products.map(
+            product =>
+              product.category
+          )
+        ).size;
     }
 
-    const dashboard =
+    const container =
       byId("dashboardProducts");
 
-    if (!dashboard) {
+    if (!container) {
       return;
     }
 
@@ -1244,19 +1192,21 @@
       products.slice(0, 6);
 
     if (!latest.length) {
-      dashboard.innerHTML =
-        `<div class="admin-empty-state">
-          <h3>No ${metalLabel(metal)} products yet</h3>
+      container.innerHTML = `
+        <div class="admin-empty-state">
+          <h3>No ${escapeHtml(
+            metalLabel(metal)
+          )} products yet</h3>
           <p>
-            Use “Add Jewellery” to add your first
-            ${metalLabel(metal).toLowerCase()} product.
+            Click “Add Jewellery” to add your first product.
           </p>
-        </div>`;
+        </div>
+      `;
 
       return;
     }
 
-    dashboard.innerHTML = `
+    container.innerHTML = `
       <div class="admin-table-scroll">
         <table class="admin-product-table">
           <thead>
@@ -1268,17 +1218,112 @@
               <th>Updated</th>
             </tr>
           </thead>
+
           <tbody>
-            ${latest.map(productRow).join("")}
+            ${latest.map(product => `
+              <tr>
+                <td>
+                  <div class="admin-product-name-cell">
+                    ${productThumbnail(product)}
+
+                    <div>
+                      <p class="admin-product-name">
+                        ${escapeHtml(product.name)}
+                      </p>
+
+                      ${
+                        product.sku
+                          ? `<p class="admin-product-sku">
+                              SKU: ${escapeHtml(product.sku)}
+                            </p>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    categoryLabel(
+                      product.category
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    formatPrice(
+                      product.price
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${productStatus(product)}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    formatDate(
+                      product.updated_at ||
+                      product.created_at
+                    )
+                  )}
+                </td>
+              </tr>
+            `).join("")}
           </tbody>
         </table>
       </div>
     `;
   }
 
-  /* ==========================================================
-     RENDER PRODUCTS
-  ========================================================== */
+  /* =========================================================
+     PRODUCTS TABLE
+  ========================================================= */
+
+  function productThumbnail(product) {
+    const image =
+      product.image_url ||
+      product.images?.[0] ||
+      "";
+
+    if (!image) {
+      return `
+        <div class="admin-product-thumb">
+          <div class="admin-product-thumb-placeholder">
+            ◇
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="admin-product-thumb">
+        <img
+          src="${escapeHtml(image)}"
+          alt="${escapeHtml(product.name)}"
+          loading="lazy"
+        >
+      </div>
+    `;
+  }
+
+  function productStatus(product) {
+    return `
+      ${
+        product.is_published
+          ? `<span class="admin-status published">Published</span>`
+          : `<span class="admin-status hidden">Hidden</span>`
+      }
+
+      ${
+        product.featured
+          ? `<span class="admin-status featured">Featured</span>`
+          : ""
+      }
+    `;
+  }
 
   function renderProducts() {
     const container =
@@ -1292,13 +1337,14 @@
       getFilteredProducts();
 
     if (!products.length) {
-      container.innerHTML =
-        `<div class="admin-empty-state">
+      container.innerHTML = `
+        <div class="admin-empty-state">
           <h3>No products found</h3>
           <p>
-            Try another filter or add a new product.
+            Try changing the filters or add a new product.
           </p>
-        </div>`;
+        </div>
+      `;
 
       return;
     }
@@ -1318,258 +1364,140 @@
           </thead>
 
           <tbody>
-            ${products.map(productTableRow).join("")}
+            ${products.map(product => `
+              <tr>
+                <td>
+                  <div class="admin-product-name-cell">
+                    ${productThumbnail(product)}
+
+                    <div>
+                      <p class="admin-product-name">
+                        ${escapeHtml(product.name)}
+                      </p>
+
+                      ${
+                        product.sku
+                          ? `<p class="admin-product-sku">
+                              SKU: ${escapeHtml(product.sku)}
+                            </p>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="admin-metal-badge ${product.metal}">
+                    ${escapeHtml(
+                      metalLabel(product.metal)
+                    )}
+                  </span>
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    categoryLabel(
+                      product.category
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    formatPrice(
+                      product.price
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${productStatus(product)}
+                </td>
+
+                <td>
+                  <div class="admin-table-actions">
+
+                    <button
+                      type="button"
+                      class="admin-table-action"
+                      data-action="edit"
+                      data-product-id="${escapeHtml(product.id)}"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      class="admin-table-action"
+                      data-action="publish"
+                      data-product-id="${escapeHtml(product.id)}"
+                    >
+                      ${
+                        product.is_published
+                          ? "Hide"
+                          : "Publish"
+                      }
+                    </button>
+
+                    <button
+                      type="button"
+                      class="admin-table-action danger"
+                      data-action="delete"
+                      data-product-id="${escapeHtml(product.id)}"
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+                </td>
+              </tr>
+            `).join("")}
           </tbody>
         </table>
       </div>
     `;
 
-    bindProductRowActions();
+    bindProductActions();
   }
 
-  function getPrimaryImage(product) {
-    return (
-      product.image_url ||
-      product.images?.[0] ||
-      ""
-    );
-  }
+  function bindProductActions() {
+    $$("[data-action]").forEach(button => {
+      if (
+        button.dataset.bound === "true"
+      ) {
+        return;
+      }
 
-  function productRow(product) {
-    const image =
-      getPrimaryImage(product);
+      button.dataset.bound = "true";
 
-    return `
-      <tr>
-        <td>
-          <div class="admin-product-name-cell">
-            <div class="admin-product-thumb">
-              ${
-                image
-                  ? `<img
-                      src="${escapeHtml(image)}"
-                      alt="${escapeHtml(product.name)}"
-                    >`
-                  : `<div class="admin-product-thumb-placeholder">
-                      ◇
-                    </div>`
-              }
-            </div>
+      button.addEventListener(
+        "click",
+        () => {
+          const action =
+            button.dataset.action;
 
-            <div>
-              <p class="admin-product-name">
-                ${escapeHtml(product.name)}
-              </p>
+          const productId =
+            button.dataset.productId;
 
-              ${
-                product.sku
-                  ? `<p class="admin-product-sku">
-                      SKU: ${escapeHtml(product.sku)}
-                    </p>`
-                  : ""
-              }
-            </div>
-          </div>
-        </td>
-
-        <td>${escapeHtml(metalLabel(product.metal))}</td>
-
-        <td>
-          ${escapeHtml(
-            categoryLabel(product.category)
-          )}
-        </td>
-
-        <td>
-          ${escapeHtml(
-            priceLabel(product.price)
-          )}
-        </td>
-
-        <td>
-          ${
-            product.is_published
-              ? `<span class="admin-status published">
-                  Published
-                </span>`
-              : `<span class="admin-status hidden">
-                  Hidden
-                </span>`
-          }
-        </td>
-
-        <td>
-          <span class="admin-table-muted">
-            ${escapeHtml(
-              formatDate(
-                product.updated_at ||
-                product.created_at
-              )
-            )}
-          </span>
-        </td>
-      </tr>
-    `;
-  }
-
-  function productTableRow(product) {
-    const image =
-      getPrimaryImage(product);
-
-    return `
-      <tr>
-        <td>
-          <div class="admin-product-name-cell">
-            <div class="admin-product-thumb">
-              ${
-                image
-                  ? `<img
-                      src="${escapeHtml(image)}"
-                      alt="${escapeHtml(product.name)}"
-                    >`
-                  : `<div class="admin-product-thumb-placeholder">
-                      ◇
-                    </div>`
-              }
-            </div>
-
-            <div>
-              <p class="admin-product-name">
-                ${escapeHtml(product.name)}
-              </p>
-
-              ${
-                product.sku
-                  ? `<p class="admin-product-sku">
-                      SKU: ${escapeHtml(product.sku)}
-                    </p>`
-                  : ""
-              }
-            </div>
-          </div>
-        </td>
-
-        <td>
-          <span class="admin-metal-badge ${product.metal}">
-            ${escapeHtml(
-              metalLabel(product.metal)
-            )}
-          </span>
-        </td>
-
-        <td>
-          ${escapeHtml(
-            categoryLabel(product.category)
-          )}
-        </td>
-
-        <td>
-          ${escapeHtml(
-            priceLabel(product.price)
-          )}
-        </td>
-
-        <td>
-          ${
-            product.is_published
-              ? `<span class="admin-status published">
-                  Published
-                </span>`
-              : `<span class="admin-status hidden">
-                  Hidden
-                </span>`
+          if (action === "edit") {
+            editProduct(productId);
           }
 
-          ${
-            product.featured
-              ? `<span class="admin-status featured">
-                  Featured
-                </span>`
-              : ""
-          }
-        </td>
-
-        <td>
-          <div class="admin-table-actions">
-
-            <button
-              type="button"
-              class="admin-table-action"
-              data-action="edit"
-              data-product-id="${escapeHtml(product.id)}"
-            >
-              Edit
-            </button>
-
-            <button
-              type="button"
-              class="admin-table-action"
-              data-action="publish"
-              data-product-id="${escapeHtml(product.id)}"
-            >
-              ${
-                product.is_published
-                  ? "Hide"
-                  : "Publish"
-              }
-            </button>
-
-            <button
-              type="button"
-              class="admin-table-action danger"
-              data-action="delete"
-              data-product-id="${escapeHtml(product.id)}"
-            >
-              Delete
-            </button>
-
-          </div>
-        </td>
-      </tr>
-    `;
-  }
-
-  function bindProductRowActions() {
-    $("[data-action]") &&
-      $$("[data-action]").forEach(
-        (button) => {
-          if (
-            button.dataset.bound === "true"
-          ) {
-            return;
+          if (action === "publish") {
+            togglePublished(productId);
           }
 
-          button.dataset.bound = "true";
-
-          button.addEventListener(
-            "click",
-            () => {
-              const id =
-                button.dataset.productId;
-
-              const action =
-                button.dataset.action;
-
-              if (action === "edit") {
-                editProduct(id);
-              }
-
-              if (action === "publish") {
-                togglePublished(id);
-              }
-
-              if (action === "delete") {
-                openDeleteModal(id);
-              }
-            }
-          );
+          if (action === "delete") {
+            openDeleteModal(productId);
+          }
         }
       );
+    });
   }
 
-  /* ==========================================================
-     PRODUCT FORM
-  ========================================================== */
+  /* =========================================================
+     FORM
+  ========================================================= */
 
   function resetProductForm() {
     state.editingProductId = null;
@@ -1591,7 +1519,7 @@
         state.metalMode;
     }
 
-    updateCategoryOptions(
+    updateProductCategories(
       state.metalMode
     );
 
@@ -1609,11 +1537,11 @@
       featured.checked = false;
     }
 
-    const id =
+    const productId =
       byId("productId");
 
-    if (id) {
-      id.value = "";
+    if (productId) {
+      productId.value = "";
     }
 
     const title =
@@ -1648,14 +1576,14 @@
   function editProduct(productId) {
     const product =
       state.products.find(
-        (item) =>
+        item =>
           String(item.id) ===
           String(productId)
       );
 
     if (!product) {
       showToast(
-        "Product could not be found.",
+        "Product not found.",
         "error"
       );
       return;
@@ -1668,37 +1596,82 @@
     state.existingImages =
       [...product.images];
 
-    byId("productId").value =
-      product.id;
+    const productIdField =
+      byId("productId");
 
-    byId("productName").value =
-      product.name;
+    const nameField =
+      byId("productName");
 
-    byId("productMetal").value =
-      product.metal;
+    const metalField =
+      byId("productMetal");
 
-    updateCategoryOptions(
+    const priceField =
+      byId("productPrice");
+
+    const skuField =
+      byId("productSku");
+
+    const materialField =
+      byId("productMaterial");
+
+    const descriptionField =
+      byId("productDescription");
+
+    if (productIdField) {
+      productIdField.value =
+        product.id;
+    }
+
+    if (nameField) {
+      nameField.value =
+        product.name;
+    }
+
+    if (metalField) {
+      metalField.value =
+        product.metal;
+    }
+
+    updateProductCategories(
       product.metal,
       product.category
     );
 
-    byId("productPrice").value =
-      product.price ?? "";
+    if (priceField) {
+      priceField.value =
+        product.price ?? "";
+    }
 
-    byId("productSku").value =
-      product.sku;
+    if (skuField) {
+      skuField.value =
+        product.sku;
+    }
 
-    byId("productMaterial").value =
-      product.material;
+    if (materialField) {
+      materialField.value =
+        product.material;
+    }
 
-    byId("productDescription").value =
-      product.description;
+    if (descriptionField) {
+      descriptionField.value =
+        product.description;
+    }
 
-    byId("productPublished").checked =
-      product.is_published;
+    const published =
+      byId("productPublished");
 
-    byId("productFeatured").checked =
-      product.featured;
+    if (published) {
+      published.checked =
+        product.is_published;
+    }
+
+    const featured =
+      byId("productFeatured");
+
+    if (featured) {
+      featured.checked =
+        product.featured;
+    }
 
     const title =
       byId("productFormTitle");
@@ -1717,12 +1690,13 @@
     }
 
     renderImagePreview();
+
     setFormMessage("");
 
     showView("add-product");
   }
 
-  function bindFormControls() {
+  function bindProductForm() {
     const form =
       byId("productForm");
 
@@ -1768,13 +1742,8 @@
       metal.addEventListener(
         "change",
         () => {
-          const current =
-            byId("productCategory")
-              ?.value || "";
-
-          updateCategoryOptions(
-            metal.value,
-            current
+          updateProductCategories(
+            metal.value
           );
         }
       );
@@ -1817,7 +1786,7 @@
         event.target.files || []
       );
 
-    for (const file of files) {
+    files.forEach(file => {
       if (
         !CONFIG.allowedImageTypes
           .includes(file.type)
@@ -1826,7 +1795,7 @@
           `${file.name}: JPG, PNG or WebP only.`,
           "error"
         );
-        continue;
+        return;
       }
 
       if (
@@ -1837,11 +1806,11 @@
           `${file.name}: maximum size is 6MB.`,
           "error"
         );
-        continue;
+        return;
       }
 
       state.selectedFiles.push(file);
-    }
+    });
 
     event.target.value = "";
 
@@ -1893,59 +1862,92 @@
       return;
     }
 
-    const existing =
-      state.existingImages
-        .map(
-          (url, index) => `
-            <div class="image-preview-item">
-              <img
-                src="${escapeHtml(url)}"
-                alt="Product image"
-              >
+    container.innerHTML = "";
 
-              <button
-                type="button"
-                class="image-preview-item-remove"
-                data-remove-image="existing"
-                data-index="${index}"
-              >
-                ×
-              </button>
-            </div>
-          `
-        )
-        .join("");
+    state.existingImages.forEach(
+      (url, index) => {
+        const wrapper =
+          document.createElement("div");
 
-    const newImages =
-      state.selectedFiles
-        .map(
-          (file, index) => `
-            <div class="image-preview-item">
-              <img
-                src="${URL.createObjectURL(file)}"
-                alt="${escapeHtml(file.name)}"
-              >
+        wrapper.className =
+          "image-preview-item";
 
-              <button
-                type="button"
-                class="image-preview-item-remove"
-                data-remove-image="new"
-                data-index="${index}"
-              >
-                ×
-              </button>
-            </div>
-          `
-        )
-        .join("");
+        wrapper.innerHTML = `
+          <img
+            src="${escapeHtml(url)}"
+            alt="Existing product image"
+          >
 
-    container.innerHTML =
-      existing + newImages;
+          <button
+            type="button"
+            class="image-preview-item-remove"
+            data-remove-image="existing"
+            data-index="${index}"
+            aria-label="Remove image"
+          >
+            ×
+          </button>
+        `;
+
+        container.appendChild(wrapper);
+      }
+    );
+
+    state.selectedFiles.forEach(
+      (file, index) => {
+        const wrapper =
+          document.createElement("div");
+
+        wrapper.className =
+          "image-preview-item";
+
+        const image =
+          document.createElement("img");
+
+        image.alt = file.name;
+
+        const objectUrl =
+          URL.createObjectURL(file);
+
+        image.src = objectUrl;
+
+        image.addEventListener(
+          "load",
+          () => {
+            URL.revokeObjectURL(
+              objectUrl
+            );
+          },
+          { once: true }
+        );
+
+        const remove =
+          document.createElement("button");
+
+        remove.type = "button";
+        remove.className =
+          "image-preview-item-remove";
+        remove.dataset.removeImage =
+          "new";
+        remove.dataset.index =
+          String(index);
+        remove.setAttribute(
+          "aria-label",
+          "Remove image"
+        );
+        remove.textContent = "×";
+
+        wrapper.appendChild(image);
+        wrapper.appendChild(remove);
+
+        container.appendChild(wrapper);
+      }
+    );
   }
 
-  /* ==========================================================
-     SAVE PRODUCT
-  ========================================================== */
+  /* =========================================================
+     SAVE
+  ========================================================= */
 
   async function saveProduct(event) {
     event.preventDefault();
@@ -1970,7 +1972,7 @@
         metal
       );
 
-    const priceRaw =
+    const priceText =
       String(
         byId("productPrice")?.value || ""
       ).trim();
@@ -2008,25 +2010,12 @@
       return;
     }
 
-    if (
-      !categoryList(metal).some(
-        ([value]) =>
-          value === category
-      )
-    ) {
-      setFormMessage(
-        "Please select a valid category.",
-        "error"
-      );
-      return;
-    }
-
     let price = null;
 
-    if (priceRaw) {
+    if (priceText) {
       price =
         Number(
-          priceRaw.replace(/,/g, "")
+          priceText.replace(/,/g, "")
         );
 
       if (
@@ -2043,11 +2032,11 @@
 
     state.isSaving = true;
 
-    const saveButton =
+    const button =
       byId("saveProductButton");
 
-    buttonLoading(
-      saveButton,
+    setButtonLoading(
+      button,
       true,
       state.editingProductId
         ? "Updating..."
@@ -2065,12 +2054,12 @@
       const supabase =
         createSupabase();
 
-      const uploaded =
+      const uploadedImages =
         await uploadImages(metal);
 
       const images = [
         ...state.existingImages,
-        ...uploaded
+        ...uploadedImages
       ];
 
       const payload = {
@@ -2090,7 +2079,7 @@
           new Date().toISOString()
       };
 
-      let saved;
+      let savedProduct;
 
       if (state.editingProductId) {
         const { data, error } =
@@ -2108,7 +2097,7 @@
           throw error;
         }
 
-        saved =
+        savedProduct =
           normalizeProduct(data);
       } else {
         const { data, error } =
@@ -2122,45 +2111,49 @@
           throw error;
         }
 
-        saved =
+        savedProduct =
           normalizeProduct(data);
       }
 
-      if (!saved) {
+      if (!savedProduct) {
         throw new Error(
-          "Product could not be saved."
+          "The product was not returned after saving."
         );
       }
 
-      const existingIndex =
+      const index =
         state.products.findIndex(
-          (product) =>
+          product =>
             String(product.id) ===
-            String(saved.id)
+            String(savedProduct.id)
         );
 
-      if (existingIndex >= 0) {
-        state.products[
-          existingIndex
-        ] = saved;
+      if (index >= 0) {
+        state.products[index] =
+          savedProduct;
       } else {
         state.products.unshift(
-          saved
+          savedProduct
         );
       }
 
+      const wasEditing =
+        Boolean(
+          state.editingProductId
+        );
+
+      resetProductForm();
+
+      updateCategoryFilter();
+      renderDashboard();
+      renderProducts();
+
       showToast(
-        state.editingProductId
+        wasEditing
           ? "Product updated successfully."
           : "Product added successfully.",
         "success"
       );
-
-      resetProductForm();
-
-      updateCategoryFilterOptions();
-      renderDashboard();
-      renderProducts();
 
       showView("products");
     } catch (error) {
@@ -2183,16 +2176,16 @@
     } finally {
       state.isSaving = false;
 
-      buttonLoading(
-        saveButton,
+      setButtonLoading(
+        button,
         false
       );
     }
   }
 
-  /* ==========================================================
+  /* =========================================================
      IMAGE UPLOAD
-  ========================================================== */
+  ========================================================= */
 
   async function uploadImages(metal) {
     if (
@@ -2204,7 +2197,7 @@
     const supabase =
       createSupabase();
 
-    const urls = [];
+    const uploadedUrls = [];
 
     for (
       const file of state.selectedFiles
@@ -2220,7 +2213,7 @@
           ) || "jpg";
 
       const filename =
-        `${normalizeMetal(metal)}-${Date.now()}-${Math.random()
+        `${Date.now()}-${Math.random()
           .toString(36)
           .slice(2, 10)}.${extension}`;
 
@@ -2253,35 +2246,39 @@
 
       if (!data?.publicUrl) {
         throw new Error(
-          `Image ${file.name} uploaded but its URL could not be created.`
+          `Unable to create a public URL for ${file.name}.`
         );
       }
 
-      urls.push(
+      uploadedUrls.push(
         data.publicUrl
       );
     }
 
-    return urls;
+    return uploadedUrls;
   }
 
-  /* ==========================================================
-     PUBLISH
-  ========================================================== */
+  /* =========================================================
+     PUBLISH / HIDE
+  ========================================================= */
 
-  async function togglePublished(id) {
+  async function togglePublished(productId) {
     const product =
       state.products.find(
-        (item) =>
+        item =>
           String(item.id) ===
-          String(id)
+          String(productId)
       );
 
     if (!product) {
+      showToast(
+        "Product not found.",
+        "error"
+      );
       return;
     }
 
-    const next =
+    const nextStatus =
       !product.is_published;
 
     try {
@@ -2292,7 +2289,7 @@
         await supabase
           .from("products")
           .update({
-            is_published: next,
+            is_published: nextStatus,
             updated_at:
               new Date().toISOString()
           })
@@ -2312,7 +2309,7 @@
 
       const index =
         state.products.findIndex(
-          (item) =>
+          item =>
             String(item.id) ===
             String(product.id)
         );
@@ -2322,17 +2319,20 @@
           updated;
       }
 
-      renderProducts();
       renderDashboard();
+      renderProducts();
 
       showToast(
-        next
+        nextStatus
           ? "Product published."
           : "Product hidden.",
         "success"
       );
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Publish update error:",
+        error
+      );
 
       showToast(
         error?.message ||
@@ -2342,16 +2342,16 @@
     }
   }
 
-  /* ==========================================================
+  /* =========================================================
      DELETE
-  ========================================================== */
+  ========================================================= */
 
-  function openDeleteModal(id) {
+  function openDeleteModal(productId) {
     const product =
       state.products.find(
-        (item) =>
+        item =>
           String(item.id) ===
-          String(id)
+          String(productId)
       );
 
     if (!product) {
@@ -2382,6 +2382,10 @@
 
     if (modal) {
       modal.hidden = false;
+      modal.removeAttribute(
+        "hidden"
+      );
+
       modal.classList.add(
         "active"
       );
@@ -2402,6 +2406,11 @@
 
     if (modal) {
       modal.hidden = true;
+      modal.setAttribute(
+        "hidden",
+        ""
+      );
+
       modal.classList.remove(
         "active"
       );
@@ -2424,7 +2433,7 @@
     const button =
       byId("confirmDeleteButton");
 
-    buttonLoading(
+    setButtonLoading(
       button,
       true,
       "Deleting..."
@@ -2449,22 +2458,25 @@
 
       state.products =
         state.products.filter(
-          (item) =>
+          item =>
             String(item.id) !==
             String(product.id)
         );
 
       closeDeleteModal();
 
-      renderProducts();
       renderDashboard();
+      renderProducts();
 
       showToast(
         "Product deleted successfully.",
         "success"
       );
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Delete error:",
+        error
+      );
 
       showToast(
         error?.message ||
@@ -2472,16 +2484,16 @@
         "error"
       );
     } finally {
-      buttonLoading(
+      setButtonLoading(
         button,
         false
       );
     }
   }
 
-  function bindModalControls() {
+  function bindDeleteModal() {
     $$("[data-close-confirm]")
-      .forEach((element) => {
+      .forEach(element => {
         if (
           element.dataset.bound === "true"
         ) {
@@ -2512,9 +2524,9 @@
     }
   }
 
-  /* ==========================================================
+  /* =========================================================
      INITIALIZATION
-  ========================================================== */
+  ========================================================= */
 
   async function initializeAdmin(
     session
@@ -2533,9 +2545,9 @@
 
     bindNavigation();
     bindMetalControls();
-    bindProductControls();
-    bindFormControls();
-    bindModalControls();
+    bindProductFilters();
+    bindProductForm();
+    bindDeleteModal();
 
     setMetalMode(
       state.metalMode,
@@ -2566,12 +2578,12 @@
         await supabase.auth.getSession();
 
       if (session?.user) {
-        const admin =
+        const isAdmin =
           await verifyAdmin(
             session.user.id
           );
 
-        if (admin) {
+        if (isAdmin) {
           await initializeAdmin(
             session
           );
@@ -2596,12 +2608,12 @@
             session?.user
           ) {
             try {
-              const admin =
+              const isAdmin =
                 await verifyAdmin(
                   session.user.id
                 );
 
-              if (!admin) {
+              if (!isAdmin) {
                 await supabase.auth.signOut();
 
                 setLoginMessage(
@@ -2617,7 +2629,7 @@
               );
             } catch (error) {
               console.error(
-                "Authentication verification error:",
+                "Admin verification error:",
                 error
               );
 
@@ -2632,7 +2644,7 @@
       );
     } catch (error) {
       console.error(
-        "Admin initialization error:",
+        "Auth initialization error:",
         error
       );
 
@@ -2643,10 +2655,6 @@
       );
     }
   }
-
-  /* ==========================================================
-     GLOBAL EVENTS
-  ========================================================== */
 
   function bindGlobalEvents() {
     const loginForm =
@@ -2660,29 +2668,16 @@
 
       loginForm.addEventListener(
         "submit",
-        login
+        handleLogin
       );
     }
 
     document.addEventListener(
       "keydown",
-      (event) => {
-        if (
-          event.key === "Escape"
-        ) {
+      event => {
+        if (event.key === "Escape") {
           closeDeleteModal();
-          closeMobileMenu();
-        }
-      }
-    );
-
-    window.addEventListener(
-      "resize",
-      () => {
-        if (
-          window.innerWidth > 900
-        ) {
-          closeMobileMenu();
+          closeMobileSidebar();
         }
       }
     );
